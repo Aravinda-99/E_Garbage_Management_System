@@ -2,6 +2,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.DTO.RequestServiceDTO;
+import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
 import com.example.backend.Service.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,5 +24,12 @@ public class RequestServiceController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
+    }
+
+    // Controller method
+    @PutMapping("/update")
+    public String updateRequest(@RequestBody RequestServiceUpdateDTO requestServiceUpdateDTO) {
+        String message = requestService.updateRequest(requestServiceUpdateDTO);
+        return message;
     }
 }
