@@ -7,6 +7,8 @@ import com.example.backend.Repo.RequestServiceRepo;
 import com.example.backend.Service.RequestService;
 import com.example.backend.entity.RequestServiceEntity;
 import com.example.backend.entity.enums.RequestStatus;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,9 @@ public class RequestServiceIMPL implements RequestService {
 
     @Autowired
     private RequestServiceRepo repo;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Override
     public String saveRequest(RequestServiceDTO dto) {
@@ -76,5 +81,13 @@ public class RequestServiceIMPL implements RequestService {
         } else {
             throw new RuntimeException("Request Not Found");
         }
+    }
+
+    @Override
+    public List<RequestServiceDTO> getAllRequest() {
+        List<RequestServiceEntity> requests = repo.findAll();
+
+        List<RequestServiceDTO> requestDTOS = modelMapper.map(requests,new TypeToken<List<RequestServiceDTO>>(){}.getType());
+        return requestDTOS;
     }
 }
