@@ -1,11 +1,10 @@
+// RequestStatus.java
 package com.example.backend.entity.enums;
 
-
-public enum RequestStatus  {
-
+public enum RequestStatus {
     PENDING,
     APPROVED,
     IN_PROGRESS,
     COMPLETED,
-    REJECTED
+    CANCELLED
 }

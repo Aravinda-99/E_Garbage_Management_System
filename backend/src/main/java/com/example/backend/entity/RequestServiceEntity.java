@@ -1,3 +1,4 @@
+// RequestServiceEntity.java
 package com.example.backend.entity;
 
 import com.example.backend.entity.enums.RequestStatus;
@@ -24,7 +25,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class RequestServiceEntity {  // 🟢 Renamed class
+public class RequestServiceEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,7 +55,7 @@ public class RequestServiceEntity {  // 🟢 Renamed class
     private LocalTime eventTime;
 
     @Column(name = "request_date", nullable = false)
-    private LocalDateTime requestDate;
+    private LocalDateTime requestDate = LocalDateTime.now(); // Default to current time
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
@@ -63,11 +64,4 @@ public class RequestServiceEntity {  // 🟢 Renamed class
     @Type(type = "json")
     @Column(name = "assigned_cleaners", columnDefinition = "json")
     private List<String> assignedCleaners = new ArrayList<>();
-
-    @PrePersist
-    public void setDefaults() {
-        this.requestDate = LocalDateTime.now();
-        this.status = RequestStatus.PENDING;
-    }
 }
-
