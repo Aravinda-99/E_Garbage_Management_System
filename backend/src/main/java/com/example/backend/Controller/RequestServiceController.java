@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/v1/request")
 @CrossOrigin
@@ -32,4 +34,12 @@ public class RequestServiceController {
         String message = requestService.updateRequest(requestServiceUpdateDTO);
         return message;
     }
+
+    @GetMapping(path = "/get-all-request")
+    public List<RequestServiceDTO> getAllRequest() {
+
+        List<RequestServiceDTO> allRequest = requestService.getAllRequest();
+        return allRequest;
+    }
+
 }
