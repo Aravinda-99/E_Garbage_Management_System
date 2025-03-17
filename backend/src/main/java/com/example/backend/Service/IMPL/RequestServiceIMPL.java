@@ -2,6 +2,7 @@
 package com.example.backend.Service.IMPL;
 
 import com.example.backend.DTO.RequestServiceDTO;
+import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
 import com.example.backend.Repo.RequestServiceRepo;
 import com.example.backend.Service.RequestService;
 import com.example.backend.entity.RequestServiceEntity;
@@ -52,5 +53,28 @@ public class RequestServiceIMPL implements RequestService {
 
         repo.save(entity);
         return "Request saved for " + dto.getRequesterName() + "!";
+    }
+
+    // Implementation in RequestServiceIMPL class
+    @Override
+    public String updateRequest(RequestServiceUpdateDTO requestServiceUpdateDTO) {
+        if (repo.existsById(requestServiceUpdateDTO.getRequestId())) {
+            RequestServiceEntity entity = repo.getReferenceById(requestServiceUpdateDTO.getRequestId());
+
+            entity.setRequesterName(requestServiceUpdateDTO.getRequesterName());
+            entity.setEmail(requestServiceUpdateDTO.getEmail());
+            entity.setContactNumbers(requestServiceUpdateDTO.getContactNumbers());
+            entity.setEventType(requestServiceUpdateDTO.getEventType());
+            entity.setLocation(requestServiceUpdateDTO.getLocation());
+            entity.setEventDate(requestServiceUpdateDTO.getEventDate());
+            entity.setEventTime(requestServiceUpdateDTO.getEventTime());
+            entity.setStatus(requestServiceUpdateDTO.getStatus());
+            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
+
+            repo.save(entity);
+            return requestServiceUpdateDTO.getRequesterName() + " Request Updated Successfully";
+        } else {
+            throw new RuntimeException("Request Not Found");
+        }
     }
 }
