@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "requestService")
+@Table(name = "request_service")
 @TypeDefs({
         @TypeDef(name = "json", typeClass = JsonType.class)
 })
@@ -24,7 +24,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class RequestService {
+public class RequestServiceEntity {  // 🟢 Renamed class
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,7 @@ public class RequestService {
     @Column(name = "user_email", nullable = false)
     private String email;
 
-    @Type(type = "json")  // ✅ Correct for Hibernate 5.x
+    @Type(type = "json")
     @Column(name = "contact_numbers", columnDefinition = "json")
     private List<String> contactNumbers = new ArrayList<>();
 
@@ -69,5 +69,5 @@ public class RequestService {
         this.requestDate = LocalDateTime.now();
         this.status = RequestStatus.PENDING;
     }
-    
 }
+
