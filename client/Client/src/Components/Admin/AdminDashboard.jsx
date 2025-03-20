@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SideBar from './dashbordComponent/SideBar.jsx';
-import DashboardOverview from './dashbordComponent/DashboardOverview.jsx';
+import DashboardOverview from './dashbordComponent/DashBoardOverview.jsx';
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
