@@ -6,6 +6,7 @@ import  Footer  from '../Footer.jsx';
 import TestimonialSlider from '../commentsBaner.jsx'
 import MultipleProjects from '../Page/MultipleProjects.jsx';
 import FAQSection from '../Page/QuestionAsked.jsx'
+import FeedBackAndComp from '../Page/FeedbackAndComplains.jsx';
 
 function Home() {
   return (
@@ -19,6 +20,7 @@ function Home() {
       <FAQSection/>
 
       < TestimonialSlider/>
+      <FeedBackAndComp />
 
      < Footer/>
     </div>
