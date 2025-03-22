@@ -105,8 +105,8 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
   };
 
   // Animation classes based on visibility
-  const formAnimationClass = isVisible 
-    ? 'opacity-100 scale-100' 
+  const formAnimationClass = isVisible
+    ? 'opacity-100 scale-100'
     : 'opacity-0 scale-95';
 
   // Different animation for fields based on their position
@@ -116,9 +116,9 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
   };
 
   return (
-    <form 
+    <form
       ref={formRef}
-      onSubmit={handleSubmit} 
+      onSubmit={handleSubmit}
       className={`max-w-6xl bg-white p-6 rounded-2xl shadow-lg relative flex flex-col gap-3 transition-all duration-1000 ${formAnimationClass}`}
     >
       {submitSuccess && (
@@ -158,6 +158,7 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
         <div className={`w-1/2 flex flex-col gap-3 transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'}`}>
           <div className="col-span-2">
             <label className="relative block">
+              <div className="text-xs font-medium text-gray-700 mb-1">Requester Name</div>
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <User className="w-4 h-4 mr-1" />
               </div>
@@ -175,6 +176,7 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
 
           <div className="col-span-2">
             <label className="relative block">
+              <div className="text-xs font-medium text-gray-700 mb-1">Email</div>
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <Mail className="w-4 h-4 mr-1" />
               </div>
@@ -190,7 +192,7 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
 
-          <div>
+          {/* <div>
             <label className="relative block">
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <Phone className="w-4 h-4 mr-1" />
@@ -203,6 +205,26 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.contactNumbers ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Contact Number"
               />
+            </label>
+            {errors.contactNumbers && <p className="text-xs text-red-500 mt-1">{errors.contactNumbers}</p>}
+          </div> */}
+
+          <div>
+            <label className="relative block">
+              <div className="text-xs font-medium text-gray-700 mb-1">Contact Number</div>
+              <div className="relative">
+                <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Phone className="w-4 h-4 mr-1" />
+                </div>
+                <input
+                  type="text"
+                  name="contactNumbers"
+                  value={formData.contactNumbers}
+                  onChange={handleChange}
+                  className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.contactNumbers ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
+                  placeholder="Contact Number"
+                />
+              </div>
             </label>
             {errors.contactNumbers && <p className="text-xs text-red-500 mt-1">{errors.contactNumbers}</p>}
           </div>
@@ -234,6 +256,7 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
         <div className={`w-1/2 flex flex-col gap-3 transition-all duration-1000 delay-400 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}>
           <div>
             <label className="relative block">
+              <div className="text-xs font-medium text-gray-700 mb-1">Location</div>
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <MapPin className="w-4 h-4 mr-1" />
               </div>
@@ -252,6 +275,7 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-1">
               <label className="relative block">
+                <div className="text-xs font-medium text-gray-700 mb-1">Event Date</div>
                 <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                   <Calendar className="w-4 h-4 mr-1" />
                 </div>
@@ -269,6 +293,7 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
 
             <div className="col-span-1">
               <label className="relative block">
+                <div className="text-xs font-medium text-gray-700 mb-1">Event Time</div>
                 <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                   <Clock className="w-4 h-4 mr-1" />
                 </div>
@@ -319,18 +344,15 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
       <button
         type="submit"
         disabled={isSubmitting}
-        className={`${
-          isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-        } text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-500 mt-2 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        } delay-500`}
+        className={`${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+          } text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-500 mt-2 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          } delay-500`}
       >
         {isSubmitting ? 'Submitting...' : 'Submit Request'}
       </button>
 
-      <p className={`text-center text-sm text-gray-600 mt-2 transition-all duration-700 ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-      } delay-600`}>
+      <p className={`text-center text-sm text-gray-600 mt-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        } delay-600`}>
         View your existing requests{' '}
         <a href="#" className="text-blue-600 hover:underline font-medium">
           here
