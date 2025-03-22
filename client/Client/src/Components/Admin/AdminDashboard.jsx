@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SideBar from './dashbordComponent/SideBar.jsx';
 import DashboardOverview from './dashbordComponent/DashBoardOverview.jsx';
+import UserManagementOverView from './UserManagement/UserManagementOverView.jsx'
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -28,6 +29,7 @@ const AdminDashboard = () => {
       <div className={`flex-1 transition-all duration-300 ease-in-out ${sidebarCollapsed ? 'ml-20' : 'ml-64'} overflow-y-auto`}>
         {/* Conditionally render components based on activeItem */}
         {activeItem === 'Dashboard' && <DashboardOverview />}
+        {activeItem === 'User Management' && < UserManagementOverView/>}
         {/* Add other components for other menu items here */}
         {/* Example:
         {activeItem === 'Inventory' && <InventoryComponent />}
