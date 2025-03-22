@@ -18,7 +18,7 @@ const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMen
 
   const menuItems = [
     { icon: IconDashboard, label: 'Dashboard' },
-    { icon: IconBoxSeam, label: 'User Management' },
+
     { icon: IconChartBar, label: 'Reports' },
     { icon: IconBellRinging, label: 'Notifications' },
     { icon: IconSettings, label: 'Settings' }
