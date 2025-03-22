@@ -9,7 +9,10 @@ import {
   IconBellRinging,
   IconMoon,
   IconSun,
-  IconLogout
+  IconLogout,
+  IconBabyBottle,
+  IconCactus,
+  IconUser
 } from '@tabler/icons-react';
 
 const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMenuItemClick }) => {
@@ -18,7 +21,8 @@ const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMen
 
   const menuItems = [
     { icon: IconDashboard, label: 'Dashboard' },
-
+    { icon: IconUser, label: 'User Management' },
+    { icon: IconBoxSeam, label: 'Feedback' },
     { icon: IconChartBar, label: 'Reports' },
     { icon: IconBellRinging, label: 'Notifications' },
     { icon: IconSettings, label: 'Settings' }
