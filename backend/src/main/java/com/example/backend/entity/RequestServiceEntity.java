@@ -1,4 +1,3 @@
-// RequestServiceEntity.java
 package com.example.backend.entity;
 
 import com.example.backend.entity.enums.RequestStatus;
@@ -10,8 +9,8 @@ import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,9 +58,27 @@ public class RequestServiceEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private RequestStatus status;
+    private RequestStatus status = RequestStatus.New; // Default to "New"
 
     @Type(type = "json")
     @Column(name = "assigned_cleaners", columnDefinition = "json")
-    private List<String> assignedCleaners = new ArrayList<>();
+    private List<String> assignedCleaners = new ArrayList<>(); // List of cleaner names
+
+    @Transient // This field is not persisted in the database
+    private Integer numberOfCleaners; // Number of cleaners (frontend input)
+
+    @Column(name = "estimated_duration")
+    private Double estimatedDuration; // Added for estimated duration in hours
+
+    // Method to transform numberOfCleaners into assignedCleaners
+    @PrePersist
+    @PreUpdate
+    public void transformNumberOfCleaners() {
+        if (numberOfCleaners != null && numberOfCleaners > 0) {
+            assignedCleaners.clear();
+            for (int i = 1; i <= numberOfCleaners; i++) {
+                assignedCleaners.add("Cleaner " + i);
+            }
+        }
+    }
 }

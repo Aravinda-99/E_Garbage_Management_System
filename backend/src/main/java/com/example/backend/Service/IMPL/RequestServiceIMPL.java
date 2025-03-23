@@ -35,9 +35,9 @@ public class RequestServiceIMPL implements RequestService {
         entity.setRequesterName(dto.getRequesterName());
         entity.setEmail(dto.getEmail());
 
-        // Handling null lists safely
-        List<String> contactNumbers = dto.getContactNumbers();
-        entity.setContactNumbers(contactNumbers != null ? contactNumbers : new ArrayList<>());
+        // Transform single contact number into a List<String>
+        String contactNumber = dto.getContactNumbers();
+        entity.setContactNumbers(contactNumber != null ? List.of(contactNumber) : new ArrayList<>());
 
         entity.setEventType(dto.getEventType());
         entity.setLocation(dto.getLocation());
@@ -49,14 +49,19 @@ public class RequestServiceIMPL implements RequestService {
         // Set request date to current time
         entity.setRequestDate(LocalDateTime.now());
 
-        // Set status to PENDING if not provided
-        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.PENDING);
+        // Set status to NEW if not provided
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.New);
 
-        // Handling null lists safely
-        List<String> assignedCleaners = dto.getAssignedCleaners();
-        entity.setAssignedCleaners(assignedCleaners != null ? assignedCleaners : new ArrayList<>());
+        // Set numberOfCleaners (transient field)
+        entity.setNumberOfCleaners(dto.getNumberOfCleaners());
 
+        // Set estimated duration
+        entity.setEstimatedDuration(dto.getEstimatedDuration());
+
+        // Save the entity
         repo.save(entity);
+
+        // The @PrePersist method (transformNumberOfCleaners) will automatically handle the transformation
         return "Request saved for " + dto.getRequesterName() + "!";
     }
 
