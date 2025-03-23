@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Calendar, Clock, MapPin, Phone, Mail, User, Check, ChevronDown } from 'lucide-react';
+import axios from 'axios'; // Import Axios
 
-const RequestForm = ({ onSubmit, initialData = {} }) => {
+const API_BASE_URL = "http://localhost:8045/api/v1/request"; // Replace with your backend URL
+
+const RequestForm = ({ initialData = {} }) => {
   const [formData, setFormData] = useState({
     requesterName: '',
     email: '',
@@ -80,7 +83,22 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
-        await onSubmit(formData);
+        // Format the date and time
+        const formattedData = {
+          ...formData,
+          eventDate: new Date(formData.eventDate).toISOString().split('T')[0], // Format as yyyy-MM-dd
+          eventTime: formData.eventTime, // Ensure time is in HH:mm format
+        };
+
+        // Call the API to save the request using Axios
+        const response = await axios.post(`${API_BASE_URL}/save`, formattedData, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        // Handle the plain text response
+        const responseMessage = response.data;
         setSubmitSuccess(true);
         setTimeout(() => {
           setFormData({
@@ -97,7 +115,17 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
           setSubmitSuccess(false);
         }, 2000);
       } catch (error) {
-        setErrors({ submit: 'Failed to submit request. Please try again.' });
+        // Handle errors
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          setErrors({ submit: error.response.data || 'Failed to submit request. Please try again.' });
+        } else if (error.request) {
+          // The request was made but no response was received
+          setErrors({ submit: 'No response from the server. Please try again.' });
+        } else {
+          // Something happened in setting up the request
+          setErrors({ submit: error.message || 'Failed to submit request. Please try again.' });
+        }
       } finally {
         setIsSubmitting(false);
       }
@@ -191,23 +219,6 @@ const RequestForm = ({ onSubmit, initialData = {} }) => {
             </label>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
-
-          {/* <div>
-            <label className="relative block">
-              <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <Phone className="w-4 h-4 mr-1" />
-              </div>
-              <input
-                type="text"
-                name="contactNumbers"
-                value={formData.contactNumbers}
-                onChange={handleChange}
-                className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.contactNumbers ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
-                placeholder="Contact Number"
-              />
-            </label>
-            {errors.contactNumbers && <p className="text-xs text-red-500 mt-1">{errors.contactNumbers}</p>}
-          </div> */}
 
           <div>
             <label className="relative block">
