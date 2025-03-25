@@ -54,31 +54,19 @@ public class RequestServiceEntity {
     private LocalTime eventTime;
 
     @Column(name = "request_date", nullable = false)
-    private LocalDateTime requestDate = LocalDateTime.now(); // Default to current time
+    private LocalDateTime requestDate = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private RequestStatus status = RequestStatus.New; // Default to "New"
+    private RequestStatus status = RequestStatus.New;
 
     @Type(type = "json")
     @Column(name = "assigned_cleaners", columnDefinition = "json")
-    private List<String> assignedCleaners = new ArrayList<>(); // List of cleaner names
+    private List<String> assignedCleaners = new ArrayList<>();
 
-    @Transient // This field is not persisted in the database
-    private Integer numberOfCleaners; // Number of cleaners (frontend input)
+    @Column(name = "number_of_cleaners", nullable = false)
+    private Integer numberOfCleaners = 0;
 
     @Column(name = "estimated_duration")
-    private Double estimatedDuration; // Added for estimated duration in hours
-
-    // Method to transform numberOfCleaners into assignedCleaners
-    @PrePersist
-    @PreUpdate
-    public void transformNumberOfCleaners() {
-        if (numberOfCleaners != null && numberOfCleaners > 0) {
-            assignedCleaners.clear();
-            for (int i = 1; i <= numberOfCleaners; i++) {
-                assignedCleaners.add("Cleaner " + i);
-            }
-        }
-    }
+    private Double estimatedDuration;
 }
