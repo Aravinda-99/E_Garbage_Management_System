@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:8045/api/v1/request"; // Replace with your backend URL
+const API_BASE_URL = "http://localhost:8045/api/v1/request";
 
-const RequestTable = ({ onDelete, onSelectRequest }) => {
+const AdminRequestTable = ({ onDelete, onSelectRequest }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [scrolled, setScrolled] = useState(false);
 
-  // Fetch all requests from the backend
   useEffect(() => {
     const fetchRequests = async () => {
       try {
@@ -29,29 +28,27 @@ const RequestTable = ({ onDelete, onSelectRequest }) => {
     setScrolled(event.target.scrollTop > 0);
   };
 
-  // Function to get status badge styling
   const getStatusBadgeClass = (status) => {
     switch (status) {
-      case 'NEW':
+      case 'New':
         return 'bg-yellow-200 text-yellow-800';
-      case 'PENDING':
+      case 'Pending':
         return 'bg-blue-100 text-blue-800';
-      case 'CONFIRMED':
+      case 'Confirmed':
         return 'bg-green-100 text-green-800';
-      case 'COMPLETED':
+      case 'Completed':
         return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  // Function to get alternating row background colors
   const getRowBgClass = (index) => {
     return index % 2 === 0 ? 'bg-blue-50' : 'bg-white';
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Loading all requests...</div>;
   }
 
   if (error) {
@@ -93,7 +90,6 @@ const RequestTable = ({ onDelete, onSelectRequest }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{request.requesterName}</div>
                   <div className="text-xs text-gray-500">{request.email}</div>
-                  <div className="text-xs text-gray-500">{request.contactNumbers}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{request.eventType}</div>
@@ -144,4 +140,4 @@ const RequestTable = ({ onDelete, onSelectRequest }) => {
   );
 };
 
-export default RequestTable;
+export default AdminRequestTable;
