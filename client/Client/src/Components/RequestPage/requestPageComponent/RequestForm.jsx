@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Calendar, Clock, MapPin, Phone, Mail, User, Check, ChevronDown } from 'lucide-react';
-import axios from 'axios'; // Import Axios
+import axios from 'axios';
 
 const API_BASE_URL = "http://localhost:8045/api/v1/request"; // Replace with your backend URL
 
@@ -13,7 +13,7 @@ const RequestForm = ({ initialData = {} }) => {
     location: '',
     eventDate: '',
     eventTime: '',
-    assignedCleaners: '',
+    numberOfCleaners: 1, // Default to 1 to match backend requirement
     estimatedDuration: '',
     ...initialData,
   });
@@ -62,9 +62,9 @@ const RequestForm = ({ initialData = {} }) => {
     if (!formData.location.trim()) newErrors.location = 'Location is required';
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
     if (!formData.eventTime) newErrors.eventTime = 'Event time is required';
-    if (!formData.assignedCleaners) newErrors.assignedCleaners = 'Number of cleaners is required';
-    if (isNaN(formData.assignedCleaners)) newErrors.assignedCleaners = 'Number of cleaners must be a number';
-    if (formData.assignedCleaners < 1) newErrors.assignedCleaners = 'Number of cleaners must be at least 1';
+    if (!formData.numberOfCleaners) newErrors.numberOfCleaners = 'Number of cleaners is required';
+    if (isNaN(formData.numberOfCleaners)) newErrors.numberOfCleaners = 'Number of cleaners must be a number';
+    if (formData.numberOfCleaners < 1) newErrors.numberOfCleaners = 'Number of cleaners must be at least 1';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -72,7 +72,10 @@ const RequestForm = ({ initialData = {} }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    // Convert numberOfCleaners to a number for backend compatibility
+    const processedValue = name === 'numberOfCleaners' ? parseInt(value, 10) || 1 : value;
+    
+    setFormData({ ...formData, [name]: processedValue });
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
     }
@@ -83,21 +86,20 @@ const RequestForm = ({ initialData = {} }) => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
-        // Format the date and time
-        const formattedData = {
+        // Ensure numberOfCleaners is a number and at least 1
+        const finalFormData = {
           ...formData,
-          eventDate: new Date(formData.eventDate).toISOString().split('T')[0], // Format as yyyy-MM-dd
-          eventTime: formData.eventTime, // Ensure time is in HH:mm format
+          numberOfCleaners: Math.max(1, parseInt(formData.numberOfCleaners, 10) || 1),
         };
 
-        // Call the API to save the request using Axios
-        const response = await axios.post(`${API_BASE_URL}/save`, formattedData, {
+        // Call the API to save the request
+        const response = await axios.post(`${API_BASE_URL}/save`, finalFormData, {
           headers: {
             "Content-Type": "application/json",
           },
         });
 
-        // Handle the plain text response
+        // Handle the response message
         const responseMessage = response.data;
         setSubmitSuccess(true);
         setTimeout(() => {
@@ -109,7 +111,7 @@ const RequestForm = ({ initialData = {} }) => {
             location: '',
             eventDate: '',
             eventTime: '',
-            assignedCleaners: '',
+            numberOfCleaners: 1, // Reset to default
             estimatedDuration: '',
           });
           setSubmitSuccess(false);
@@ -117,13 +119,13 @@ const RequestForm = ({ initialData = {} }) => {
       } catch (error) {
         // Handle errors
         if (error.response) {
-          // The request was made and the server responded with a status code
+          // Server responded with an error
           setErrors({ submit: error.response.data || 'Failed to submit request. Please try again.' });
         } else if (error.request) {
-          // The request was made but no response was received
+          // No response received
           setErrors({ submit: 'No response from the server. Please try again.' });
         } else {
-          // Something happened in setting up the request
+          // Error in setting up the request
           setErrors({ submit: error.message || 'Failed to submit request. Please try again.' });
         }
       } finally {
@@ -325,14 +327,14 @@ const RequestForm = ({ initialData = {} }) => {
             <label className="block text-xs font-medium text-gray-700 mb-1">Number of Cleaners</label>
             <input
               type="number"
-              name="assignedCleaners"
-              value={formData.assignedCleaners}
+              name="numberOfCleaners"
+              value={formData.numberOfCleaners}
               onChange={handleChange}
-              className={`w-full px-3 py-2.5 outline-none border ${errors.assignedCleaners ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
-              placeholder="e.g. 2"
               min="1"
+              className={`w-full px-3 py-2.5 outline-none border ${errors.numberOfCleaners ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
+              placeholder="Number of Cleaners (minimum 1)"
             />
-            {errors.assignedCleaners && <p className="text-xs text-red-500 mt-1">{errors.assignedCleaners}</p>}
+            {errors.numberOfCleaners && <p className="text-xs text-red-500 mt-1">{errors.numberOfCleaners}</p>}
           </div>
 
           <div className="col-span-1">
