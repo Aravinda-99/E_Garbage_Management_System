@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import RequestTable from '../../RequestPage/requestPageComponent/RequestTable.jsx';
 import StatusChangeTable from '../RequestManagement/RMcomponent/StatusChangeTable.jsx';
 
@@ -7,91 +8,34 @@ const RequestManagementOverview = () => {
   const [requests, setRequests] = useState([]);
   // State to track which request is selected for status change
   const [selectedRequest, setSelectedRequest] = useState(null);
+  // Loading and error states
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Mock function to fetch requests (in a real app, this would be an API call)
+  // Fetch requests from backend
   useEffect(() => {
-    // Simulate fetching user-created requests
-    const mockUserRequests = [
-      {
-        id: 1,
-        requesterName: 'John Doe',
-        email: 'john.doe@example.com',
-        contactNumbers: '123-456-7890',
-        eventType: 'Birthday Party',
-        location: '123 Main St',
-        eventDate: '2024-03-15',
-        eventTime: '18:00',
-        status: 'New', // Default status for new requests
-        assignedCleaners: [],
-      },
-      {
-        id: 2,
-        requesterName: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        contactNumbers: '987-654-3210',
-        eventType: 'Corporate Event',
-        location: '456 Oak Ave',
-        eventDate: '2024-03-22',
-        eventTime: '10:00',
-        status: 'New',
-        assignedCleaners: [],
-      },
-      {
-        id: 3,
-        requesterName: 'Peter Jones',
-        email: 'peter.jones@example.com',
-        contactNumbers: '111-222-3333',
-        eventType: 'Wedding Reception',
-        location: '789 Pine Ln',
-        eventDate: '2024-04-01',
-        eventTime: '20:00',
-        status: 'New',
-        assignedCleaners: [],
-      },
-      {
-        id: 4,
-        requesterName: 'Sarah Lee',
-        email: 'sarah.lee@example.com',
-        contactNumbers: '444-555-6666',
-        eventType: 'House Cleaning',
-        location: '101 Elm Rd',
-        eventDate: '2024-04-10',
-        eventTime: '14:00',
-        status: 'Pending',
-        assignedCleaners: [],
-      },
-      {
-        id: 5,
-        requesterName: 'Mike Brown',
-        email: 'mike.brown@example.com',
-        contactNumbers: '777-888-9999',
-        eventType: 'Office Cleaning',
-        location: '202 Maple Dr',
-        eventDate: '2024-04-18',
-        eventTime: '09:00',
-        status: 'Confirmed',
-        assignedCleaners: ['Isaac', 'Jack'],
-      },
-      {
-        id: 6,
-        requesterName: 'Emily Davis',
-        email: 'emily.davis@example.com',
-        contactNumbers: '333-222-1111',
-        eventType: 'Party Cleaning',
-        location: '303 Birch Ct',
-        eventDate: '2024-04-25',
-        eventTime: '16:00',
-        status: 'Completed',
-        assignedCleaners: ['Kelly'],
+    const fetchRequests = async () => {
+      try {
+        const response = await axios.get('http://localhost:8045/api/v1/request/get-all-request');
+        setRequests(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
       }
-    ];
-    
-    setRequests(mockUserRequests);
+    };
+
+    fetchRequests();
   }, []);
 
   // Handler functions for the request table
-  const handleDeleteRequest = (request) => {
-    setRequests(requests.filter(req => req.id !== request.id));
+  const handleDeleteRequest = async (request) => {
+    try {
+      await axios.delete(`http://localhost:8045/api/v1/request/${request.id}`);
+      setRequests(requests.filter(req => req.id !== request.id));
+    } catch (err) {
+      console.error('Error deleting request:', err);
+    }
   };
 
   // Handler to select a request for status change
@@ -100,24 +44,35 @@ const RequestManagementOverview = () => {
   };
 
   // Handler to update request status
-  const handleStatusChange = (requestId, newStatus, assignedCleaners) => {
-    setRequests(requests.map(req => 
-      req.id === requestId 
-        ? { ...req, status: newStatus, assignedCleaners: assignedCleaners } 
-        : req
-    ));
-    
-    // After updating, clear the selection
-    if (selectedRequest && selectedRequest.id === requestId) {
+  const handleStatusChange = async (requestId, updateDTO) => {
+    try {
+      const response = await axios.put(`http://localhost:8045/api/v1/request/${requestId}/update-status`, updateDTO);
+      
+      // Update the requests list with the updated request
+      setRequests(requests.map(req => 
+        req.id === requestId ? response.data : req
+      ));
+      
+      // Clear the selected request
       setSelectedRequest(null);
+    } catch (err) {
+      console.error('Error updating request status:', err);
     }
   };
 
   // Count requests by status
-  const newRequests = requests.filter(req => req.status === 'New').length;
-  const pendingRequests = requests.filter(req => req.status === 'Pending').length;
-  const confirmedRequests = requests.filter(req => req.status === 'Confirmed').length;
-  const completedRequests = requests.filter(req => req.status === 'Completed').length;
+  const newRequests = requests.filter(req => req.status === 'NEW').length;
+  const pendingRequests = requests.filter(req => req.status === 'PENDING').length;
+  const confirmedRequests = requests.filter(req => req.status === 'CONFIRMED').length;
+  const completedRequests = requests.filter(req => req.status === 'COMPLETED').length;
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="p-6">
@@ -205,7 +160,13 @@ const RequestManagementOverview = () => {
         {selectedRequest ? (
           <StatusChangeTable
             request={selectedRequest}
-            onStatusChange={handleStatusChange}
+            onStatusChange={(requestId, status, cleaners) => 
+              handleStatusChange(requestId, {
+                status: status,
+                numberOfCleaners: cleaners.length,
+                assignedCleaners: cleaners
+              })
+            }
             onCancel={() => setSelectedRequest(null)}
           />
         ) : (

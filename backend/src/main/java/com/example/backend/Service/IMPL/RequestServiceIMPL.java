@@ -27,7 +27,6 @@ public class RequestServiceIMPL implements RequestService {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Override
     public String saveRequest(RequestServiceDTO dto) {
         RequestServiceEntity entity = new RequestServiceEntity();
 
@@ -36,8 +35,7 @@ public class RequestServiceIMPL implements RequestService {
         entity.setEmail(dto.getEmail());
 
         // Transform single contact number into a List<String>
-        String contactNumber = dto.getContactNumbers();
-        entity.setContactNumbers(contactNumber != null ? List.of(contactNumber) : new ArrayList<>());
+        entity.setContactNumbers(dto.getContactNumbers() != null ? List.of(dto.getContactNumbers()) : new ArrayList<>());
 
         entity.setEventType(dto.getEventType());
         entity.setLocation(dto.getLocation());
@@ -49,20 +47,16 @@ public class RequestServiceIMPL implements RequestService {
         // Set request date to current time
         entity.setRequestDate(LocalDateTime.now());
 
-        // Set status to NEW if not provided
+        // Set status
         entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.New);
 
-        // Set numberOfCleaners (transient field)
+        // Ensure numberOfCleaners is set correctly
         entity.setNumberOfCleaners(dto.getNumberOfCleaners());
 
-        // Set estimated duration
-        entity.setEstimatedDuration(dto.getEstimatedDuration());
-
-        // Save the entity
+        // Save entity
         repo.save(entity);
 
-        // The @PrePersist method (transformNumberOfCleaners) will automatically handle the transformation
-        return "Request saved for " + dto.getRequesterName() + "!";
+        return "Request saved for " + dto.getRequesterName() + " with " + entity.getNumberOfCleaners() + " cleaners!";
     }
 
     // Implementation in RequestServiceIMPL class
