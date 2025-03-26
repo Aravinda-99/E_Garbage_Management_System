@@ -92,10 +92,6 @@ public class RequestServiceIMPL implements RequestService {
         return requestDTOS;
     }
 
-//    @Override
-//    public RequestServiceDTO updateRequestStatus(Integer requestId, RequestStatusUpdateDTO updateDTO) {
-//        return null;
-//    }
 
     @Transactional
     public RequestServiceDTO updateRequestStatus(Integer requestId, RequestStatusUpdateDTO updateDTO) {
@@ -109,6 +105,16 @@ public class RequestServiceIMPL implements RequestService {
         RequestServiceDTO dto = modelMapper.map(updatedRequest, RequestServiceDTO.class);
         dto.setRequestId(updatedRequest.getRequestId()); // Explicitly set the ID
         return dto;
+    }
+
+
+    public String deleteRequest(Integer requestId) {
+        if (repo.existsById(requestId)) {
+            repo.deleteById(requestId);
+            return requestId + " Deleted Successfully";
+        } else {
+            throw new RuntimeException("Request Not Found");
+        }
     }
     
 }
