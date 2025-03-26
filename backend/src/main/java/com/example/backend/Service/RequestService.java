@@ -14,5 +14,7 @@ public interface RequestService {
     List<RequestServiceDTO> getAllRequest();
 
     RequestServiceDTO updateRequestStatus(Integer requestId, RequestStatusUpdateDTO updateDTO);
+
+    String deleteRequest(Integer requestId);
 //    String saveRequest(RequestServiceDTO requestServiceDTO);
 }

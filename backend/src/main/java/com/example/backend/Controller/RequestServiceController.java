@@ -45,6 +45,12 @@ public class RequestServiceController {
         return allRequest;
     }
 
+    @DeleteMapping(path = "delete-request/{id}")
+    public String deleteRequest(@PathVariable(value = "id") Integer requestId) {
+        String deleted = requestService.deleteRequest(requestId);
+        return deleted;
+    }
+
 
 
     @PutMapping("/{requestId}/update-status")

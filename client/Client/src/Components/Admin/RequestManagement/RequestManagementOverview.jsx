@@ -30,7 +30,7 @@ const RequestManagementOverview = () => {
     
     if (confirmDelete) {
       try {
-        await axios.delete(`${API_BASE_URL}/${request.requestId}`);
+        await axios.delete(`${API_BASE_URL}/delete-request/${request.requestId}`);
         setRequests(requests.filter(req => req.requestId !== request.requestId));
       } catch (err) {
         console.error('Delete error:', err);
