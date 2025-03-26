@@ -6,6 +6,6 @@ public enum RequestStatus {
     APPROVED, // For approved requests
     IN_PROGRESS, // For requests being worked on
     COMPLETED, // For successfully completed requests
-    New,
+    NEW,
     CANCELLED // For cancelled requests
 }

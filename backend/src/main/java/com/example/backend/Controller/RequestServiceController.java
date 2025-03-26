@@ -3,6 +3,7 @@ package com.example.backend.Controller;
 
 import com.example.backend.DTO.RequestServiceDTO;
 import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
+import com.example.backend.DTO.updateController.RequestStatusUpdateDTO;
 import com.example.backend.Service.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,32 @@ public class RequestServiceController {
 
         List<RequestServiceDTO> allRequest = requestService.getAllRequest();
         return allRequest;
+    }
+
+
+
+    @PutMapping("/{requestId}/update-status")
+    public ResponseEntity<?> updateRequestStatus(
+            @PathVariable Integer requestId,
+            @RequestBody RequestStatusUpdateDTO updateDTO
+    ) {
+        try {
+            // Log incoming data for debugging
+            System.out.println("Received Request ID: " + requestId);
+            System.out.println("Received Status: " + updateDTO.getStatus());
+
+            // Validate input
+            if (updateDTO.getStatus() == null) {
+                return ResponseEntity.badRequest().body("Status cannot be null");
+            }
+
+            RequestServiceDTO updatedRequest = requestService.updateRequestStatus(requestId, updateDTO);
+            return ResponseEntity.ok(updatedRequest);
+        } catch (Exception e) {
+            // Log the full exception
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Error updating request status: " + e.getMessage());
+        }
     }
 
 }

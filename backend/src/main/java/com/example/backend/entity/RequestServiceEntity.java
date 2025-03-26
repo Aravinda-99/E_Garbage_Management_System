@@ -58,11 +58,11 @@ public class RequestServiceEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private RequestStatus status = RequestStatus.New;
+    private RequestStatus status = RequestStatus.NEW;
 
-    @Type(type = "json")
-    @Column(name = "assigned_cleaners", columnDefinition = "json")
-    private List<String> assignedCleaners = new ArrayList<>();
+//    @Type(type = "json")
+//    @Column(name = "assigned_cleaners", columnDefinition = "json")
+//    private List<String> assignedCleaners = new ArrayList<>();
 
     @Column(name = "number_of_cleaners", nullable = false)
     private Integer numberOfCleaners = 0;
