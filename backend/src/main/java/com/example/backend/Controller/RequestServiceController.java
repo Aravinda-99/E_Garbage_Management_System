@@ -2,8 +2,8 @@
 package com.example.backend.Controller;
 
 import com.example.backend.DTO.RequestServiceDTO;
-import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
 import com.example.backend.DTO.updateController.RequestStatusUpdateDTO;
+import com.example.backend.DTO.updateController.RequestUpdateUserDTO;
 import com.example.backend.Service.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +30,11 @@ public class RequestServiceController {
     }
 
     // Controller method
-    @PutMapping("/update")
-    public String updateRequest(@RequestBody RequestServiceUpdateDTO requestServiceUpdateDTO) {
-        String message = requestService.updateRequest(requestServiceUpdateDTO);
-        return message;
-    }
+//    @PutMapping("/update")
+//    public String updateRequest(@RequestBody RequestServiceUpdateDTO requestServiceUpdateDTO) {
+//        String message = requestService.updateRequest(requestServiceUpdateDTO);
+//        return message;
+//    }
 
 
 
@@ -52,6 +52,15 @@ public class RequestServiceController {
     }
 
 
+    @PutMapping("/update/{requestId}")
+    public ResponseEntity<RequestServiceDTO> updateRequest(
+            @PathVariable Integer requestId,
+            @RequestBody RequestUpdateUserDTO updateDTO
+    ) {
+        updateDTO.setRequestId(requestId);
+        RequestServiceDTO updatedRequest = requestService.updateUserRequest(updateDTO);
+        return ResponseEntity.ok(updatedRequest);
+    }
 
     @PutMapping("/{requestId}/update-status")
     public ResponseEntity<?> updateRequestStatus(
