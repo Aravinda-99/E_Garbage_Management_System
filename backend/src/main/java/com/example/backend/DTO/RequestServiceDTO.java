@@ -13,6 +13,8 @@ import java.time.LocalTime;
 @ToString
 public class RequestServiceDTO {
 
+
+    private Integer requestId;
     private String requesterName;
     private String email;
     private String contactNumbers; // Single contact number (frontend input)
@@ -20,7 +22,7 @@ public class RequestServiceDTO {
     private String location;
     private LocalDate eventDate;
     private LocalTime eventTime;
-    private RequestStatus status = RequestStatus.New; // Default to "NEW"
+    private RequestStatus status = RequestStatus.NEW; // Default to "NEW"
     private Integer numberOfCleaners; // Number of cleaners (frontend input)
     private Double estimatedDuration; // Estimated duration in hours
 }

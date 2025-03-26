@@ -3,6 +3,7 @@ package com.example.backend.Service.IMPL;
 
 import com.example.backend.DTO.RequestServiceDTO;
 import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
+import com.example.backend.DTO.updateController.RequestStatusUpdateDTO;
 import com.example.backend.Repo.RequestServiceRepo;
 import com.example.backend.Service.RequestService;
 import com.example.backend.entity.RequestServiceEntity;
@@ -12,6 +13,7 @@ import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -48,7 +50,7 @@ public class RequestServiceIMPL implements RequestService {
         entity.setRequestDate(LocalDateTime.now());
 
         // Set status
-        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.New);
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.NEW);
 
         // Ensure numberOfCleaners is set correctly
         entity.setNumberOfCleaners(dto.getNumberOfCleaners());
@@ -73,7 +75,7 @@ public class RequestServiceIMPL implements RequestService {
             entity.setEventDate(requestServiceUpdateDTO.getEventDate());
             entity.setEventTime(requestServiceUpdateDTO.getEventTime());
             entity.setStatus(requestServiceUpdateDTO.getStatus());
-            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
+//            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
 
             repo.save(entity);
             return requestServiceUpdateDTO.getRequesterName() + " Request Updated Successfully";
@@ -89,4 +91,24 @@ public class RequestServiceIMPL implements RequestService {
         List<RequestServiceDTO> requestDTOS = modelMapper.map(requests,new TypeToken<List<RequestServiceDTO>>(){}.getType());
         return requestDTOS;
     }
+
+//    @Override
+//    public RequestServiceDTO updateRequestStatus(Integer requestId, RequestStatusUpdateDTO updateDTO) {
+//        return null;
+//    }
+
+    @Transactional
+    public RequestServiceDTO updateRequestStatus(Integer requestId, RequestStatusUpdateDTO updateDTO) {
+        RequestServiceEntity existingRequest = repo.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found with ID: " + requestId));
+
+        existingRequest.setStatus(updateDTO.getStatus());
+        RequestServiceEntity updatedRequest = repo.save(existingRequest);
+
+        // Ensure the ID is included in the returned DTO
+        RequestServiceDTO dto = modelMapper.map(updatedRequest, RequestServiceDTO.class);
+        dto.setRequestId(updatedRequest.getRequestId()); // Explicitly set the ID
+        return dto;
+    }
+    
 }
