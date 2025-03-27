@@ -5,7 +5,7 @@ const API_BASE_URL = "http://localhost:8045/api/v1/request"; // Replace with you
 
 const RequestTable = ({ onDelete, onSelectRequest }) => {
   const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null);
   const [scrolled, setScrolled] = useState(false);
 
@@ -119,7 +119,7 @@ const RequestTable = ({ onDelete, onSelectRequest }) => {
                       onClick={() => onSelectRequest(request)}
                       className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded hover:bg-indigo-50"
                     >
-                      Update Status
+                      Update
                     </button>
                     <button
                       onClick={() => onDelete(request)}

@@ -1,19 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import UserProfile from './ProfilePageComponent/UserProfile.jsx';
 import RequestTable from '../RequestPage/requestPageComponent/RequestTable.jsx';
+import UpdateRequestForm from '../RequestPage/requestPageComponent/UpdateRequestForm.jsx';
 import Navbar from '../Navbar.jsx'
 import Footer from '../Footer.jsx';
 
 const UserProfileView = () => {
-  const handleDeleteRequest = (request) => {
-    console.log('Deleting request:', request);
-    // Implement your delete logic here
+  const [selectedRequest, setSelectedRequest] = useState(null);
+
+  const handleDeleteRequest = async (request) => {
+    try {
+      // Implement your delete logic here
+      console.log('Deleting request:', request);
+      // Example delete API call
+      // await axios.delete(`${API_BASE_URL}/delete/${request.requestId}`);
+      // Refresh the request list or remove the request from state
+    } catch (error) {
+      console.error('Error deleting request:', error);
+    }
+  };
+
+  const handleSelectRequest = (request) => {
+    setSelectedRequest(request);
+  };
+
+  const handleCloseUpdateForm = () => {
+    setSelectedRequest(null);
   };
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* <Navbar/> */}
-      
       <div className="flex-grow bg-gray-50">
         {/* Profile Section */}
         <UserProfile />
@@ -27,10 +43,33 @@ const UserProfileView = () => {
             </div>
             
             <div className="p-6">
-              <RequestTable onDelete={handleDeleteRequest} />
+              <RequestTable 
+                onDelete={handleDeleteRequest} 
+                onSelectRequest={handleSelectRequest} 
+              />
             </div>
           </div>
         </div>
+
+        {/* Update Request Modal */}
+        {selectedRequest && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="relative w-full max-w-4xl mx-auto my-8">
+              <div className="bg-white rounded-lg shadow-xl relative">
+                <button 
+                  onClick={handleCloseUpdateForm}
+                  className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-60 text-2xl"
+                >
+                  &times;
+                </button>
+                <UpdateRequestForm 
+                  requestId={selectedRequest.requestId} 
+                  initialData={selectedRequest} 
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <Footer />
