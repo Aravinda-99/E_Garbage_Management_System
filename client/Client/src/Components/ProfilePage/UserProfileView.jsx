@@ -73,7 +73,7 @@ const UserProfileView = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Navbar />
+      {/* <Navbar /> */}
       <ToastContainer />
       
       <div className="flex-grow bg-gray-50">
