@@ -8,6 +8,8 @@ import ContactUs from './Components/ContactUS';
 import AdminDashboard from './Components/Admin/AdminDashboard.jsx'
 import RequestPage from './Components/RequestPage/RequestPage.jsx'
 import UserProfileView from './Components/ProfilePage/UserProfileView.jsx'
+import TimeScheduling from './Components/TimeSchedulingPage/TimeSchedulingComponents/TimeScheduling.jsx'
+
 
 function App() {
 
@@ -20,6 +22,7 @@ function App() {
         <Route path="/UserProfileView" element={<UserProfileView />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/time" element={<TimeScheduling />} />
       </Routes>
 
     </React.Fragment>
