@@ -100,7 +100,7 @@ const Navbar = () => {
             {/* Text with shimmer effect */}
             <span className="text-xl font-bold relative">
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Ego
+                WasteWise
               </span>
               <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/30 to-transparent bg-clip-text text-transparent animate-shimmer"></span>
             </span>

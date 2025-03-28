@@ -39,18 +39,6 @@ const stats = [
     value: '100+',
     label: 'Vehicles',
     description: 'Eco-friendly collection fleet'
-  },
-  {
-    icon: Scale,
-    value: '1M+',
-    label: 'Collections',
-    description: 'Successful pickups completed'
-  },
-  {
-    icon: Leaf,
-    value: '50K+',
-    label: 'CO₂ Reduced',
-    description: 'Tons of carbon emissions prevented'
   }
 ];
 
@@ -70,7 +58,8 @@ export const Stats = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Adjusted grid to 3 columns and centered */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {stats.map((stat, index) => (
             <motion.div
               key={index}

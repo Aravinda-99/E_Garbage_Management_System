@@ -3,6 +3,7 @@ import { MapPin, Trash2, AlertCircle, CheckCircle2, Search, Filter } from 'lucid
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import Navbar from '../Navbar';
+import Footer from '../Footer'
 
 // Fix for default marker icon in Leaflet (unchanged)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -220,6 +221,7 @@ const BinLocations = () => {
         </div>
       </div>
     </div>
+    <Footer/>
     </>
   );
 };

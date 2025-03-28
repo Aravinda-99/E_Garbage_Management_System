@@ -5,6 +5,7 @@ import UserManagementOverView from './UserManagement/UserManagementOverView.jsx'
 import RequestManagementOverview from './RequestManagement/RequestManagementOverview.jsx'
 import FeedbackDashboard from './FeedBackM/FeedbackOverView.jsx';
 import ComplainOverView from './ComplainM/ComplainOverView.jsx';
+import BinLocationsAdmin from '../BinLocations/BinLocationsAdmin.jsx'
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -37,10 +38,9 @@ const AdminDashboard = () => {
         {activeItem === 'FeedBack M' && <FeedbackDashboard/>}
         {activeItem === 'Complain M' && <ComplainOverView/>}
         {/* Add other components for other menu items here */}
-        {/* Example:
-        {activeItem === 'Inventory' && <InventoryComponent />}
-        {activeItem === 'Reports' && <ReportsComponent />}
-        */}
+        
+        {activeItem === 'BinLocations' && <BinLocationsAdmin />}
+        
       </div>
     </div>
   );
