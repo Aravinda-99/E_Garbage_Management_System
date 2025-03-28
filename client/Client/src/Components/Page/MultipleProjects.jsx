@@ -39,6 +39,7 @@ const MultipleProjects = () => {
     <div className="bg-white py-12">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
+        <h1 className="text-sm font-bold text-orange-300">Explore Projects</h1>
           <h2 className="text-2xl font-bold text-gray-900">Explore Projects</h2>
         </div>
         
