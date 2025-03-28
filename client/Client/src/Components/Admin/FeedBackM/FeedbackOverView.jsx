@@ -174,48 +174,13 @@ function FeedbackDashboard() {
           ))}
         </motion.div>
 
-        {/* Charts Section */}
+        {/* Charts Section - Only Response Performance remains */}
         <motion.div 
-          className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8"
+          className="grid grid-cols-1 gap-5 mb-8"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <motion.div 
-            className="bg-white rounded-lg border border-gray-200 p-6"
-            whileHover={{ y: -5, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">Feedback Volume</h2>
-              <div className="flex items-center space-x-2">
-                <motion.span 
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-                  animate={{ 
-                    scale: [1, 1.05, 1],
-                    transition: { repeat: Infinity, duration: 2 }
-                  }}
-                >
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +12.5%
-                </motion.span>
-                <MoreHorizontal className="h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-600" />
-              </div>
-            </div>
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-              <motion.div 
-                className="text-center"
-                animate={{ 
-                  opacity: [0.5, 1, 0.5],
-                  transition: { repeat: Infinity, duration: 3 }
-                }}
-              >
-                <BarChart2 className="h-12 w-12 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Feedback trend visualization</p>
-              </motion.div>
-            </div>
-          </motion.div>
-
           <motion.div 
             className="bg-white rounded-lg border border-gray-200 p-6"
             whileHover={{ y: -5, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
@@ -259,69 +224,6 @@ function FeedbackDashboard() {
               ))}
             </div>
           </motion.div>
-        </motion.div>
-
-        {/* Recent Feedback */}
-        <motion.div 
-          className="bg-white rounded-lg border border-gray-200 overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div className="mb-3 sm:mb-0">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Feedback</h2>
-              <p className="text-sm text-gray-500 mt-1">Latest customer feedback items</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: 'All', value: 'all', class: 'bg-gray-100 text-gray-800 hover:bg-gray-200' },
-                { label: 'Positive', value: 'positive', class: 'bg-green-100 text-green-800 hover:bg-green-200' },
-                { label: 'Negative', value: 'negative', class: 'bg-red-100 text-red-800 hover:bg-red-200' },
-                { label: 'Pending', value: 'pending', class: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' }
-              ].map((filter) => (
-                <motion.button
-                  key={filter.value}
-                  onClick={() => setSelectedFilter(filter.value)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors duration-200 ${
-                    filter.class
-                  } ${
-                    selectedFilter === filter.value ? 'ring-2 ring-offset-1 ring-blue-500' : ''
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {filter.label}
-                </motion.button>
-              ))}
-            </div>
-          </div>
-          <div className="divide-y divide-gray-200">
-            <AnimatePresence>
-              {feedbackItems.map((item, index) => (
-                <FeedbackItem key={index} {...item} index={index} />
-              ))}
-            </AnimatePresence>
-          </div>
-          <div className="px-6 py-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-500">
-            <span>Showing 4 of 1,284 feedback items</span>
-            <div className="flex space-x-4">
-              <motion.button 
-                className="hover:text-gray-700 disabled:opacity-50" 
-                disabled
-                whileHover={{ x: -2 }}
-              >
-                Previous
-              </motion.button>
-              <motion.button 
-                className="text-blue-600 hover:text-blue-800 font-medium"
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Next
-              </motion.button>
-            </div>
-          </div>
         </motion.div>
       </main>
     </div>
@@ -423,98 +325,5 @@ function ResponseTimeItem({ category, avgTime, target, isWithinTarget, progress,
     </motion.div>
   );
 }
-
-function FeedbackItem({ user, time, message, status, rating, index }) {
-  const statusColors = {
-    positive: { bg: 'bg-green-100', text: 'text-green-800' },
-    negative: { bg: 'bg-red-100', text: 'text-red-800' },
-    pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' }
-  };
-
-  return (
-    <motion.div 
-      className="px-6 py-4 hover:bg-gray-50 transition-colors duration-150"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 + index * 0.05 }}
-      exit={{ opacity: 0, x: -10 }}
-      whileHover={{ x: 5 }}
-    >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-start">
-          <motion.div 
-            className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <span className="text-sm font-medium text-blue-600">{user.charAt(0)}</span>
-          </motion.div>
-          <div>
-            <p className="text-sm font-medium text-gray-900">{user}</p>
-            <div className="flex items-center mt-1">
-              <ClockIcon className="h-3 w-3 text-gray-400 mr-1" />
-              <span className="text-xs text-gray-500">{time}</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <motion.span 
-            className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[status].bg} ${statusColors[status].text}`}
-            whileHover={{ scale: 1.05 }}
-          >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </motion.span>
-          <motion.div 
-            className="flex items-center"
-            whileHover={{ scale: 1.1 }}
-          >
-            <Star className="h-4 w-4 text-yellow-400" />
-            <span className="ml-1 text-sm font-medium text-gray-600">{rating}</span>
-          </motion.div>
-        </div>
-      </div>
-      <motion.p 
-        className="text-sm text-gray-600 pl-13"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 + index * 0.05 }}
-      >
-        {message}
-      </motion.p>
-    </motion.div>
-  );
-}
-
-// Sample data
-const feedbackItems = [
-  {
-    user: 'John Smith',
-    time: '2 hours ago',
-    message: 'The new interface is much more intuitive and user-friendly. Great job on the update!',
-    status: 'positive',
-    rating: 5
-  },
-  {
-    user: 'Sarah Johnson',
-    time: '4 hours ago',
-    message: 'Having issues with the export functionality. The CSV files are not formatting correctly.',
-    status: 'negative',
-    rating: 2
-  },
-  {
-    user: 'Michael Wilson',
-    time: '5 hours ago',
-    message: 'Would love to see dark mode implementation in the next update. The current bright interface strains my eyes during night work.',
-    status: 'pending',
-    rating: 4
-  },
-  {
-    user: 'Emily Brown',
-    time: '1 day ago',
-    message: 'The new search feature has greatly improved my workflow efficiency. Finding documents is now 3x faster!',
-    status: 'positive',
-    rating: 5
-  }
-];
 
 export default FeedbackDashboard;
