@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SideBar from './dashbordComponent/SideBar.jsx';
-import DashboardOverview from './dashbordComponent/DashboardOverview.jsx';
+import DashboardOverview from './dashbordComponent/';
 import UserManagementOverView from './UserManagement/UserManagementOverView.jsx'
 import RequestManagementOverview from './RequestManagement/RequestManagementOverview.jsx'
 

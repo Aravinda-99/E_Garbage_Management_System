@@ -3,7 +3,7 @@ import Navbar from '../Navbar.jsx';
 import { Stats } from './Stat';
 import { Process } from './Process';
 import { Gallery } from './Gallary';
-import { useInView } from "react-intersection-observer";
+// import { useInView } from "react-intersection-observer";
 import { HeroContentLeft } from '../Hero.jsx';
 import SystemBenefits from '../Page/Benifits.jsx';
 import Footer from '../Footer.jsx';
