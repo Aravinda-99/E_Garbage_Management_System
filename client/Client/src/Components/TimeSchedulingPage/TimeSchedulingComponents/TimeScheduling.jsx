@@ -23,6 +23,7 @@ const Scheduling = () => {
     const [, setFilterError] = useState('');
     const [reminders, setReminders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTimeouts, setActiveTimeouts] = useState({});
 
     const [user] = useState({
         name: "John Doe",
@@ -42,6 +43,10 @@ const Scheduling = () => {
 
         if (newDate < today) {
             setDateError('You cannot select a past date.');
+            toast.error('Cannot select a past date', {
+                position: 'top-right',
+                duration: 2000
+            });
         } else {
             setDateError('');
             setSelectedDate(dateString);
@@ -58,6 +63,10 @@ const Scheduling = () => {
 
         if (!validFilters.includes(newFilter)) {
             setFilterError('Invalid filter selected.');
+            toast.error('Invalid filter selected', {
+                position: 'top-right',
+                duration: 2000
+            });
         } else {
             setFilterError('');
             setFilter(newFilter);
@@ -115,48 +124,72 @@ const Scheduling = () => {
         return schedule;
     }, [selectedDate, selectedWeek, filter]);
 
-    const handleSetReminder = (date, type, time) => {
+    const handleToggleReminder = (date, type, time) => {
         const reminderId = `${date}-${type}-${time}`;
-        const reminderDateTime = new Date(`${date} ${time}`);
-        const now = new Date();
+        const existingReminder = reminders.find(r => r.id === reminderId);
 
-        if (reminderDateTime <= now) {
-            toast.error("Cannot set a reminder for a past time.", {
-                icon: <AlertCircle />,
-            });
-            return;
-        }
-
-        if (reminders.find(r => r.id === reminderId)) {
-            toast.error("Reminder already set for this collection.", {
-                icon: <AlertCircle />,
-            });
-            return;
-        }
-
-        setReminders(prev => [...prev, { date, type, time, id: reminderId }]);
-        toast.success(`Reminder set for ${type} on ${date} at ${time}!`);
-
-        const timeUntilReminder = reminderDateTime.getTime() - now.getTime();
-        setTimeout(() => {
-            if (notificationsEnabled) {
-                alert(`Reminder: ${type} collection on ${date} at ${time}!`);
-            } else {
-                toast(`Reminder: ${type} collection on ${date} at ${time}!`);
-            }
+        if (existingReminder) {
+            // Clear the reminder
+            clearTimeout(activeTimeouts[reminderId]);
             setReminders(prev => prev.filter(r => r.id !== reminderId));
-        }, timeUntilReminder);
+            setActiveTimeouts(prev => {
+                const newTimeouts = {...prev};
+                delete newTimeouts[reminderId];
+                return newTimeouts;
+            });
+            toast.success(`Reminder cleared for ${type} on ${date} at ${time}!`);
+        } else {
+            // Set new reminder
+            const reminderDateTime = new Date(`${date} ${time}`);
+            const now = new Date();
+
+            if (reminderDateTime <= now) {
+                toast.error("Cannot set a reminder for a past time.", {
+                    icon: <AlertCircle />,
+                });
+                return;
+            }
+
+            setReminders(prev => [...prev, { date, type, time, id: reminderId }]);
+            toast.success(`Reminder set for ${type} on ${date} at ${time}!`);
+
+            const timeUntilReminder = reminderDateTime.getTime() - now.getTime();
+            const timeoutId = setTimeout(() => {
+                if (notificationsEnabled) {
+                    alert(`Reminder: ${type} collection on ${date} at ${time}!`);
+                } else {
+                    toast(`Reminder: ${type} collection on ${date} at ${time}!`);
+                }
+                setReminders(prev => prev.filter(r => r.id !== reminderId));
+                setActiveTimeouts(prev => {
+                    const newTimeouts = {...prev};
+                    delete newTimeouts[reminderId];
+                    return newTimeouts;
+                });
+            }, timeUntilReminder);
+
+            setActiveTimeouts(prev => ({
+                ...prev,
+                [reminderId]: timeoutId
+            }));
+        }
     };
 
     useEffect(() => {
         const timer = setTimeout(() => {
             setLoading(false);
         }, 500);
-        return () => clearTimeout(timer);
+        
+        return () => {
+            clearTimeout(timer);
+            // Clean up all active timeouts when component unmounts
+            Object.values(activeTimeouts).forEach(timeout => clearTimeout(timeout));
+        };
     }, []);
 
     const isReminderSet = (date, type, time) => {
-        return reminders.some(r => r.date === date && r.type === type && r.time === time);
+        const reminderId = `${date}-${type}-${time}`;
+        return reminders.some(r => r.id === reminderId);
     };
 
     return (
@@ -314,15 +347,24 @@ const Scheduling = () => {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => handleSetReminder(item.date, item.type, item.time)}
-                                            disabled={isCurrentlySet}
+                                            onClick={() => handleToggleReminder(item.date, item.type, item.time)}
                                             className={cn(
                                                 isCurrentlySet
-                                                    ? "bg-yellow-100 text-yellow-700 border-yellow-300 cursor-not-allowed"
+                                                    ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
                                                     : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
                                             )}
                                         >
-                                            {isCurrentlySet ? 'Reminder Set' : 'Remind Me'}
+                                            {isCurrentlySet ? (
+                                                <>
+                                                    <Clock className="w-4 h-4 mr-2" />
+                                                    Clear Reminder
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Bell className="w-4 h-4 mr-2" />
+                                                    Remind Me
+                                                </>
+                                            )}
                                         </Button>
                                     </motion.div>
                                 );
