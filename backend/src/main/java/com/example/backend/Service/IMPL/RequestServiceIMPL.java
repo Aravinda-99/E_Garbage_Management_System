@@ -2,14 +2,15 @@
 package com.example.backend.Service.IMPL;
 
 import com.example.backend.DTO.RequestServiceDTO;
-import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
 import com.example.backend.DTO.updateController.RequestStatusUpdateDTO;
+import com.example.backend.DTO.updateController.RequestUpdateUserDTO;
 import com.example.backend.Repo.RequestServiceRepo;
 import com.example.backend.Service.RequestService;
 import com.example.backend.entity.RequestServiceEntity;
 import com.example.backend.entity.enums.RequestStatus;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,27 +63,27 @@ public class RequestServiceIMPL implements RequestService {
     }
 
     // Implementation in RequestServiceIMPL class
-    @Override
-    public String updateRequest(RequestServiceUpdateDTO requestServiceUpdateDTO) {
-        if (repo.existsById(requestServiceUpdateDTO.getRequestId())) {
-            RequestServiceEntity entity = repo.getReferenceById(requestServiceUpdateDTO.getRequestId());
-
-            entity.setRequesterName(requestServiceUpdateDTO.getRequesterName());
-            entity.setEmail(requestServiceUpdateDTO.getEmail());
-            entity.setContactNumbers(requestServiceUpdateDTO.getContactNumbers());
-            entity.setEventType(requestServiceUpdateDTO.getEventType());
-            entity.setLocation(requestServiceUpdateDTO.getLocation());
-            entity.setEventDate(requestServiceUpdateDTO.getEventDate());
-            entity.setEventTime(requestServiceUpdateDTO.getEventTime());
-            entity.setStatus(requestServiceUpdateDTO.getStatus());
-//            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
-
-            repo.save(entity);
-            return requestServiceUpdateDTO.getRequesterName() + " Request Updated Successfully";
-        } else {
-            throw new RuntimeException("Request Not Found");
-        }
-    }
+//    @Override
+//    public String updateRequest(RequestServiceUpdateDTO requestServiceUpdateDTO) {
+//        if (repo.existsById(requestServiceUpdateDTO.getRequestId())) {
+//            RequestServiceEntity entity = repo.getReferenceById(requestServiceUpdateDTO.getRequestId());
+//
+//            entity.setRequesterName(requestServiceUpdateDTO.getRequesterName());
+//            entity.setEmail(requestServiceUpdateDTO.getEmail());
+//            entity.setContactNumbers(requestServiceUpdateDTO.getContactNumbers());
+//            entity.setEventType(requestServiceUpdateDTO.getEventType());
+//            entity.setLocation(requestServiceUpdateDTO.getLocation());
+//            entity.setEventDate(requestServiceUpdateDTO.getEventDate());
+//            entity.setEventTime(requestServiceUpdateDTO.getEventTime());
+//            entity.setStatus(requestServiceUpdateDTO.getStatus());
+////            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
+//
+//            repo.save(entity);
+//            return requestServiceUpdateDTO.getRequesterName() + " Request Updated Successfully";
+//        } else {
+//            throw new RuntimeException("Request Not Found");
+//        }
+//    }
 
     @Override
     public List<RequestServiceDTO> getAllRequest() {
@@ -116,5 +117,24 @@ public class RequestServiceIMPL implements RequestService {
             throw new RuntimeException("Request Not Found");
         }
     }
-    
+
+    @Override
+    public RequestServiceDTO updateUserRequest(RequestUpdateUserDTO updateDTO) {
+
+        RequestServiceEntity existingRequest = repo.findById(updateDTO.getRequestId())
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        // Copy non-null properties from DTO to existing request
+        BeanUtils.copyProperties(updateDTO, existingRequest, "status");
+
+        // Save updated request
+        RequestServiceEntity updatedRequest = repo.save(existingRequest);
+
+        // Convert to DTO
+        RequestServiceDTO responseDTO = new RequestServiceDTO();
+        BeanUtils.copyProperties(updatedRequest, responseDTO);
+
+        return responseDTO;
+    }
+
 }

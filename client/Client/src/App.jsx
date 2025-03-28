@@ -8,9 +8,10 @@ import AdminDashboard from './Components/Admin/AdminDashboard.jsx';
 import RequestPage from './Components/RequestPage/RequestPage.jsx';
 import UserProfileView from './Components/ProfilePage/UserProfileView.jsx';
 import BinLocations from './Components/BinLocations/BinLocations.jsx';
-import BinLocationsAdmin from './Components/BinLocations/BinLocationsAdmin.jsx'; // Import the new admin component
-
+import BinLocationsAdmin from './Components/BinLocations/BinLocationsAdmin.jsx'; 
 import 'leaflet/dist/leaflet.css';
+import TimeScheduling from './Components/TimeSchedulingPage/TimeSchedulingComponents/TimeScheduling.jsx'
+
 
 function App() {
   return (
@@ -28,7 +29,9 @@ function App() {
 
         {/* Admin Routes */}
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
-        <Route path="/admin/bin-locations" element={<BinLocationsAdmin />} /> {/* New route for bin locations admin */}
+        <Route path="/admin/bin-locations" element={<BinLocationsAdmin />} /> 
+        <Route path="/time" element={<TimeScheduling />} />
+        
       </Routes>
     </React.Fragment>
   );
