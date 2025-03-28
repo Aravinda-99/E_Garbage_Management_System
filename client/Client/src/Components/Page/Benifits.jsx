@@ -5,7 +5,7 @@ const SystemBenefits = () => {
   return (
     <div className="flex flex-row w-full">
       {/* Left Section - Green Background with Benefits */}
-      <div className="bg-green-500 text-white p-8 w-1/2">
+      <div className="bg-emerald-900 text-white p-8 w-1/2">
         <div className="space-y-8 max-w-md">
           <div className="flex items-start space-x-3">
             <div className="mt-1 flex-shrink-0">

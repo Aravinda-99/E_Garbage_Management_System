@@ -24,7 +24,7 @@ const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMen
     { icon: IconGitPullRequest, label: 'Request Management' },
     { icon: IconGitPullRequest, label: 'FeedBack M' },
     { icon: IconGitPullRequest, label: 'Complain M' },
-    // { icon: IconBoxSeam, label: 'Inventory' },
+    { icon: IconBoxSeam, label: 'BinLocations' },
     // { icon: IconChartBar, label: 'Reports' },
     // { icon: IconBellRinging, label: 'Notifications' },
     // { icon: IconSettings, label: 'Settings' }
