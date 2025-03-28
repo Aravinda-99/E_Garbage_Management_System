@@ -1,4 +1,3 @@
-// RequestServiceEntity.java
 package com.example.backend.entity;
 
 import com.example.backend.entity.enums.RequestStatus;
@@ -10,8 +9,8 @@ import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,13 +54,19 @@ public class RequestServiceEntity {
     private LocalTime eventTime;
 
     @Column(name = "request_date", nullable = false)
-    private LocalDateTime requestDate = LocalDateTime.now(); // Default to current time
+    private LocalDateTime requestDate = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private RequestStatus status;
+    private RequestStatus status = RequestStatus.NEW;
 
-    @Type(type = "json")
-    @Column(name = "assigned_cleaners", columnDefinition = "json")
-    private List<String> assignedCleaners = new ArrayList<>();
+//    @Type(type = "json")
+//    @Column(name = "assigned_cleaners", columnDefinition = "json")
+//    private List<String> assignedCleaners = new ArrayList<>();
+
+    @Column(name = "number_of_cleaners", nullable = false)
+    private Integer numberOfCleaners = 0;
+
+    @Column(name = "estimated_duration")
+    private Double estimatedDuration;
 }

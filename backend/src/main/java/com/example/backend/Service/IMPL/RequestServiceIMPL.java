@@ -2,16 +2,19 @@
 package com.example.backend.Service.IMPL;
 
 import com.example.backend.DTO.RequestServiceDTO;
-import com.example.backend.DTO.updateController.RequestServiceUpdateDTO;
+import com.example.backend.DTO.updateController.RequestStatusUpdateDTO;
+import com.example.backend.DTO.updateController.RequestUpdateUserDTO;
 import com.example.backend.Repo.RequestServiceRepo;
 import com.example.backend.Service.RequestService;
 import com.example.backend.entity.RequestServiceEntity;
 import com.example.backend.entity.enums.RequestStatus;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,7 +30,6 @@ public class RequestServiceIMPL implements RequestService {
     @Autowired
     private ModelMapper modelMapper;
 
-    @Override
     public String saveRequest(RequestServiceDTO dto) {
         RequestServiceEntity entity = new RequestServiceEntity();
 
@@ -35,9 +37,8 @@ public class RequestServiceIMPL implements RequestService {
         entity.setRequesterName(dto.getRequesterName());
         entity.setEmail(dto.getEmail());
 
-        // Handling null lists safely
-        List<String> contactNumbers = dto.getContactNumbers();
-        entity.setContactNumbers(contactNumbers != null ? contactNumbers : new ArrayList<>());
+        // Transform single contact number into a List<String>
+        entity.setContactNumbers(dto.getContactNumbers() != null ? List.of(dto.getContactNumbers()) : new ArrayList<>());
 
         entity.setEventType(dto.getEventType());
         entity.setLocation(dto.getLocation());
@@ -49,39 +50,40 @@ public class RequestServiceIMPL implements RequestService {
         // Set request date to current time
         entity.setRequestDate(LocalDateTime.now());
 
-        // Set status to PENDING if not provided
-        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.PENDING);
+        // Set status
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : RequestStatus.NEW);
 
-        // Handling null lists safely
-        List<String> assignedCleaners = dto.getAssignedCleaners();
-        entity.setAssignedCleaners(assignedCleaners != null ? assignedCleaners : new ArrayList<>());
+        // Ensure numberOfCleaners is set correctly
+        entity.setNumberOfCleaners(dto.getNumberOfCleaners());
 
+        // Save entity
         repo.save(entity);
-        return "Request saved for " + dto.getRequesterName() + "!";
+
+        return "Request saved for " + dto.getRequesterName() + " with " + entity.getNumberOfCleaners() + " cleaners!";
     }
 
     // Implementation in RequestServiceIMPL class
-    @Override
-    public String updateRequest(RequestServiceUpdateDTO requestServiceUpdateDTO) {
-        if (repo.existsById(requestServiceUpdateDTO.getRequestId())) {
-            RequestServiceEntity entity = repo.getReferenceById(requestServiceUpdateDTO.getRequestId());
-
-            entity.setRequesterName(requestServiceUpdateDTO.getRequesterName());
-            entity.setEmail(requestServiceUpdateDTO.getEmail());
-            entity.setContactNumbers(requestServiceUpdateDTO.getContactNumbers());
-            entity.setEventType(requestServiceUpdateDTO.getEventType());
-            entity.setLocation(requestServiceUpdateDTO.getLocation());
-            entity.setEventDate(requestServiceUpdateDTO.getEventDate());
-            entity.setEventTime(requestServiceUpdateDTO.getEventTime());
-            entity.setStatus(requestServiceUpdateDTO.getStatus());
-            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
-
-            repo.save(entity);
-            return requestServiceUpdateDTO.getRequesterName() + " Request Updated Successfully";
-        } else {
-            throw new RuntimeException("Request Not Found");
-        }
-    }
+//    @Override
+//    public String updateRequest(RequestServiceUpdateDTO requestServiceUpdateDTO) {
+//        if (repo.existsById(requestServiceUpdateDTO.getRequestId())) {
+//            RequestServiceEntity entity = repo.getReferenceById(requestServiceUpdateDTO.getRequestId());
+//
+//            entity.setRequesterName(requestServiceUpdateDTO.getRequesterName());
+//            entity.setEmail(requestServiceUpdateDTO.getEmail());
+//            entity.setContactNumbers(requestServiceUpdateDTO.getContactNumbers());
+//            entity.setEventType(requestServiceUpdateDTO.getEventType());
+//            entity.setLocation(requestServiceUpdateDTO.getLocation());
+//            entity.setEventDate(requestServiceUpdateDTO.getEventDate());
+//            entity.setEventTime(requestServiceUpdateDTO.getEventTime());
+//            entity.setStatus(requestServiceUpdateDTO.getStatus());
+////            entity.setAssignedCleaners(requestServiceUpdateDTO.getAssignedCleaners());
+//
+//            repo.save(entity);
+//            return requestServiceUpdateDTO.getRequesterName() + " Request Updated Successfully";
+//        } else {
+//            throw new RuntimeException("Request Not Found");
+//        }
+//    }
 
     @Override
     public List<RequestServiceDTO> getAllRequest() {
@@ -90,4 +92,49 @@ public class RequestServiceIMPL implements RequestService {
         List<RequestServiceDTO> requestDTOS = modelMapper.map(requests,new TypeToken<List<RequestServiceDTO>>(){}.getType());
         return requestDTOS;
     }
+
+
+    @Transactional
+    public RequestServiceDTO updateRequestStatus(Integer requestId, RequestStatusUpdateDTO updateDTO) {
+        RequestServiceEntity existingRequest = repo.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found with ID: " + requestId));
+
+        existingRequest.setStatus(updateDTO.getStatus());
+        RequestServiceEntity updatedRequest = repo.save(existingRequest);
+
+        // Ensure the ID is included in the returned DTO
+        RequestServiceDTO dto = modelMapper.map(updatedRequest, RequestServiceDTO.class);
+        dto.setRequestId(updatedRequest.getRequestId()); // Explicitly set the ID
+        return dto;
+    }
+
+
+    public String deleteRequest(Integer requestId) {
+        if (repo.existsById(requestId)) {
+            repo.deleteById(requestId);
+            return requestId + " Deleted Successfully";
+        } else {
+            throw new RuntimeException("Request Not Found");
+        }
+    }
+
+    @Override
+    public RequestServiceDTO updateUserRequest(RequestUpdateUserDTO updateDTO) {
+
+        RequestServiceEntity existingRequest = repo.findById(updateDTO.getRequestId())
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        // Copy non-null properties from DTO to existing request
+        BeanUtils.copyProperties(updateDTO, existingRequest, "status");
+
+        // Save updated request
+        RequestServiceEntity updatedRequest = repo.save(existingRequest);
+
+        // Convert to DTO
+        RequestServiceDTO responseDTO = new RequestServiceDTO();
+        BeanUtils.copyProperties(updatedRequest, responseDTO);
+
+        return responseDTO;
+    }
+
 }
