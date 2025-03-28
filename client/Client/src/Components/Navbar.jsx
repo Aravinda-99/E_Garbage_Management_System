@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Menu, X, Leaf } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { Leaf, User, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,9 +20,9 @@ const Navbar = () => {
     const timer = setTimeout(() => setIsVisible(true), 100);
     const pathname = location.pathname;
     if (pathname === '/') setActiveLink('Home');
-    else if (pathname === '/RequestPage') setActiveLink('Request');
-    else if (pathname === '/bin-locations') setActiveLink('BinLocation');
-    else if (pathname === '/Time') setActiveLink('Time');
+    else if (pathname === '/request') setActiveLink('Request');
+    else if (pathname === '/bin-locations') setActiveLink('Bin Locations');
+    else if (pathname === '/schedule') setActiveLink('Schedule');
 
     window.addEventListener('scroll', handleScroll);
     return () => {
@@ -47,9 +47,9 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Request', path: '/RequestPage' },
+    { name: 'Request', path: '/request' },
     { name: 'Bin Locations', path: '/bin-locations' },
-    { name: 'Schedule', path: '/Time' }, // Renamed "Time" to "Schedule" for clarity
+    { name: 'Schedule', path: '/schedule' },
   ];
 
   return (
@@ -136,24 +136,31 @@ const Navbar = () => {
                 className="p-2 rounded-full bg-green-100 hover:bg-green-200 transition-all duration-300 transform hover:rotate-12"
                 aria-expanded={showDropdown}
               >
-                <User size={20} className="text-green-700" />
+                <User size={20} className="text-green-600" />
               </button>
               {showDropdown && (
                 <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl p-2 border border-green-100 z-50">
-                  {[
-                    { name: 'Profile', path: '/UserProfileView' },
-                    { name: 'Settings', path: '/settings' },
-                    { name: 'Logout', path: '/logout' },
-                  ].map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
-                      onClick={() => setShowDropdown(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    to="/settings"
+                    className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Settings
+                  </Link>
+                  <Link
+                    to="/logout"
+                    className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Logout
+                  </Link>
                 </div>
               )}
             </div>
@@ -191,6 +198,20 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            <Link
+              to="/login"
+              className="block py-3 px-4 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg font-medium transition-all duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Log In
+            </Link>
+            <Link
+              to="/signup"
+              className="block py-3 px-4 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg font-medium transition-all duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign Up
+            </Link>
           </div>
         </div>
       </header>
