@@ -7,6 +7,7 @@ import RequestTable from '../RequestPage/requestPageComponent/RequestTable.jsx';
 import UpdateRequestForm from '../RequestPage/requestPageComponent/UpdateRequestForm.jsx';
 import Navbar from '../Navbar.jsx';
 import Footer from '../Footer.jsx';
+import FeedbackInPTable from './ProfilePageComponent/FeedbackInPTable.jsx';
 
 const API_BASE_URL = "http://localhost:8045/api/v1/request";
 
@@ -73,14 +74,14 @@ const UserProfileView = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* <Navbar /> */}
       <ToastContainer />
       
       <div className="flex-grow bg-gray-50">
         <UserProfile />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-8">
-          <div className="bg-white shadow rounded-lg overflow-hidden">
+          {/* Cleaning Requests Section */}
+          <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
             <div className="px-6 py-5 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-800">My Cleaning Requests</h2>
             </div>
@@ -98,6 +99,17 @@ const UserProfileView = () => {
                 />
               </div>
             )}
+          </div>
+
+          {/* Feedback Section */}
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">My Feedback</h2>
+            </div>
+            
+            <div className="p-6">
+              <FeedbackInPTable />
+            </div>
           </div>
         </div>
 
@@ -122,7 +134,6 @@ const UserProfileView = () => {
           </div>
         )}
       </div>
-
       <Footer />
     </div>
   );
