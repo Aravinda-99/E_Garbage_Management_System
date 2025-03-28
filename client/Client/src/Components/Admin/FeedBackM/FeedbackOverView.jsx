@@ -17,6 +17,7 @@ import {
   Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import FeedbackTable from '../FeedBackM/FeedbackTable';
 
 function FeedbackDashboard() {
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -224,6 +225,55 @@ function FeedbackDashboard() {
               ))}
             </div>
           </motion.div>
+        </motion.div>
+
+        {/* Feedback Table Section */}
+        <motion.div
+          className="bg-white rounded-lg border border-gray-200 overflow-hidden"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Recent Feedback</h2>
+              <div className="flex space-x-2">
+                <motion.button
+                  className={`px-3 py-1 text-sm rounded-md ${selectedFilter === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+                  onClick={() => setSelectedFilter('all')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  All
+                </motion.button>
+                <motion.button
+                  className={`px-3 py-1 text-sm rounded-md ${selectedFilter === 'positive' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}
+                  onClick={() => setSelectedFilter('positive')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Positive
+                </motion.button>
+                <motion.button
+                  className={`px-3 py-1 text-sm rounded-md ${selectedFilter === 'negative' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}
+                  onClick={() => setSelectedFilter('negative')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Negative
+                </motion.button>
+                <motion.button
+                  className={`px-3 py-1 text-sm rounded-md ${selectedFilter === 'unread' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'}`}
+                  onClick={() => setSelectedFilter('unread')}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Unread
+                </motion.button>
+              </div>
+            </div>
+          </div>
+          <FeedbackTable filter={selectedFilter} />
         </motion.div>
       </main>
     </div>
