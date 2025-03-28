@@ -30,7 +30,7 @@ const Navbar = () => {
     const pathname = location.pathname;
     if (pathname === '/') setActiveLink('Home');
     else if (pathname === '/RequestPage') setActiveLink('Request');
-    else if (pathname === '/BinLocation') setActiveLink('BinLocation');
+    else if (pathname === '/bin-locations') setActiveLink('BinLocation');
     else if (pathname === '/Time') setActiveLink('Time');
 
     window.addEventListener('scroll', handleScroll);
@@ -66,7 +66,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Request', path: '/RequestPage' },
-    { name: 'BinLocation', path: '/BinLocation' },
+    { name: 'BinLocation', path: '/bin-locations' },
     { name: 'Time', path: '/Time' }
   ];
 
