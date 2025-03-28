@@ -39,7 +39,6 @@ const UserProfileView = () => {
 
   // Handle request deletion
   const handleDeleteRequest = async (request) => {
-    // Confirm deletion
     const confirmDelete = window.confirm('Are you sure you want to delete this request?');
     if (!confirmDelete) return;
 
@@ -50,7 +49,6 @@ const UserProfileView = () => {
         }
       });
       
-      // Remove request from local state
       setRequests(prevRequests => 
         prevRequests.filter(req => req.requestId !== request.requestId)
       );
@@ -74,6 +72,7 @@ const UserProfileView = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Navbar />
       <ToastContainer />
       
       <div className="flex-grow bg-gray-50">
@@ -122,7 +121,7 @@ const UserProfileView = () => {
                   onClick={handleCloseUpdateForm}
                   className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-60 text-2xl"
                 >
-                  &times;
+                  ×
                 </button>
                 <UpdateRequestForm 
                   requestId={selectedRequest.requestId} 

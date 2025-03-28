@@ -12,7 +12,7 @@ const UserProfile = () => {
     gender: '',
     country: '',
     language: '',
-    birthday: '', // Replaced timeZone with birthday
+    birthday: '',
     address: '',
     pickupTime: '',
   });
@@ -43,27 +43,7 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Welcome, Amanda</h1>
-            <p className="text-sm text-gray-600">March 28, 2025</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative group">
-              <img
-                src={Pro2}
-                alt="User profile"
-                className="w-12 h-12 rounded-full border-2 border-gray-200 object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></span>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans pt-20">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-lg rounded-xl overflow-hidden">
@@ -203,7 +183,7 @@ const UserProfile = () => {
                     label: 'Birthday',
                     name: 'birthday',
                     value: user.birthday,
-                    type: 'date', // Replaced timeZone with birthday
+                    type: 'date',
                     placeholder: 'YYYY-MM-DD',
                   },
                 ].map((field) => (
