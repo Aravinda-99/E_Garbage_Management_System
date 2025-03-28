@@ -57,9 +57,9 @@ function Home() {
 
 
     
-        <FAQSection />
+        {/* <FAQSection /> */}
         {/* <TestimonialSlider /> */}
-        <FeedBackAndComp />
+        {/* <FeedBackAndComp /> */}
         <Footer />
 
         
