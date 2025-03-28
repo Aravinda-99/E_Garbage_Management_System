@@ -72,8 +72,9 @@ const BinLocations = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-16 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="py-30 min-h-screen bg-gradient-to-b from-green-50 to-white py-16 px-4 sm:px-6 lg:px-8 font-sans">
         <div className="max-w-7xl mx-auto">
+          
           {/* Header */}
           <div className="mb-8 text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-green-700 tracking-tight">
@@ -124,8 +125,8 @@ const BinLocations = () => {
             <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden">
               <div className="h-[400px] lg:h-[600px] relative">
                 <MapContainer
-                  center={[6.927079, 79.861244]}
-                  zoom={13}
+                  center={[6.9170822, 79.862846]}
+                  zoom={12}
                   style={{ height: '100%', width: '100%' }}
                 >
                   <TileLayer
@@ -218,21 +219,23 @@ const BinLocations = () => {
   );
 };
 
-// Custom scrollbar styles
+// Updated scrollbar styles
 const styles = `
   .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px; /* Thinner scrollbar */
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: #e5e7eb; /* Subtle gray track */
+    border-radius: 6px; /* Slightly larger radius for a smoother look */
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #10b981;
-    border-radius: 4px;
+    background: #14b8a6; /* Teal thumb color */
+    border-radius: 6px; /* Match the track radius */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #0d9488;
+    background: #0f766e; /* Darker teal on hover */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow on hover */
   }
 `;
 
