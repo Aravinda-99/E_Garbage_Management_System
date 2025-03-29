@@ -15,27 +15,60 @@ const GalleryItem = ({ title, category, image, icon, description }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    whileHover={{ scale: 1.02 }}
+    viewport={{ once: true, margin: "-50px" }}
+    whileHover={{ 
+      scale: 1.03,
+      transition: { duration: 0.3 }
+    }}
+    transition={{
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }}
     className="relative overflow-hidden rounded-2xl shadow-lg group cursor-pointer"
   >
-    <div className="aspect-[4/3] overflow-hidden">
+    <motion.div 
+      className="aspect-[4/3] overflow-hidden"
+      whileHover={{
+        scale: 1.05,
+        transition: { duration: 0.5 }
+      }}
+    >
       <div 
         className="w-full h-full bg-cover bg-center transform transition-transform duration-500 group-hover:scale-110"
         style={{ backgroundImage: `url(${image})` }}
       />
-    </div>
+    </motion.div>
     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-        <div className="flex items-center gap-2 text-emerald-400 mb-2">
+      <motion.div 
+        className="absolute bottom-0 left-0 right-0 p-6 text-white"
+        initial={{ y: 20 }}
+        whileHover={{ y: 0 }}
+      >
+        <motion.div 
+          className="flex items-center gap-2 text-emerald-400 mb-2"
+          whileHover={{ scale: 1.05 }}
+        >
           {icon}
           <span className="text-sm uppercase tracking-wider">{category}</span>
-        </div>
-        <h3 className="text-2xl font-bold mb-2">{title}</h3>
-        <p className="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        </motion.div>
+        <motion.h3 
+          className="text-2xl font-bold mb-2"
+          whileHover={{ x: 5 }}
+        >
+          {title}
+        </motion.h3>
+        <motion.p 
+          className="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          initial={{ opacity: 0 }}
+          whileHover={{ 
+            opacity: 1,
+            transition: { delay: 0.1 }
+          }}
+        >
           {description}
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     </div>
   </motion.div>
 );
@@ -86,34 +119,80 @@ export const Gallery = () => {
     }
   ];
 
-  return (
-    <section className="py-24 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="text-emerald-600 text-sm font-semibold tracking-wider uppercase">
-              Waste Management Solutions
-            </span>
-            <h2 className="text-4xl font-bold text-gray-900 mt-2 mb-4">
-              Comprehensive Recycling Services
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              From electronic waste to organic materials, we provide sustainable solutions for all types of waste management needs.
-            </p>
-          </motion.div>
-        </div>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
 
-        {/* Adjusted grid to 3 columns and centered */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+  return (
+    <motion.section 
+      className="py-24 bg-gray-50"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+    >
+      <div className="container mx-auto px-4">
+        <motion.div 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ 
+            opacity: 1, 
+            y: 0,
+            transition: { duration: 0.5 }
+          }}
+          viewport={{ once: true }}
+        >
+          <motion.span 
+            className="text-emerald-600 text-sm font-semibold tracking-wider uppercase"
+            initial={{ opacity: 0 }}
+            whileInView={{ 
+              opacity: 1,
+              transition: { delay: 0.2 }
+            }}
+          >
+            Waste Management Solutions
+          </motion.span>
+          <motion.h2 
+            className="text-4xl font-bold text-gray-900 mt-2 mb-4"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ 
+              opacity: 1, 
+              y: 0,
+              transition: { delay: 0.3 }
+            }}
+          >
+            Comprehensive Recycling Services
+          </motion.h2>
+          <motion.p 
+            className="text-gray-600 max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ 
+              opacity: 1,
+              transition: { delay: 0.4 }
+            }}
+          >
+            From electronic waste to organic materials, we provide sustainable solutions for all types of waste management needs.
+          </motion.p>
+        </motion.div>
+
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {items.map((item, index) => (
             <GalleryItem key={index} {...item} />
           ))}
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 };
