@@ -5,6 +5,7 @@ import RequestForm from '../RequestPage/requestPageComponent/RequestForm.jsx';
 import ElevateFarmingSection from '../RequestPage/requestPageComponent/ElevateFarmingSection.jsx';
 import CleaningBenefits from '../RequestPage/requestPageComponent/CleaningBenefits.jsx';
 import RecentProject from '../RequestPage/requestPageComponent/recentProject.jsx'; // Capitalized import
+import Banner from '../Page/Banner.jsx';
 
 const RequestPage = () => {
   const [requests, setRequests] = useState([]);
@@ -30,6 +31,7 @@ const RequestPage = () => {
       </div>
       <CleaningBenefits />
       <RecentProject /> {/* Capitalized component name */}
+      <Banner/>
       <Footer />
     </div>
   );
