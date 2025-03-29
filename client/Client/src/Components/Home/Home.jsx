@@ -14,6 +14,8 @@ import FeedBackAndComp from '../Page/FeedbackAndComplains.jsx';
 import Card from '../Admin/FeedBackButton/Card.jsx';
 import AIBot from '../AIBot/AIBot.jsx';
 
+import FeedbackBanner from '../../Components/Admin/FeedbackInrerface/FeedbackBanner.jsx';
+
 
 function Home() {
   return (

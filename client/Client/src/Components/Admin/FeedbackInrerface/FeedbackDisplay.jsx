@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import  FeedbackList  from '../FeedbackInrerface/FeedbackList';
+import FeedbackList from './FeedbackList'; // Adjust path as needed
+import Navbar from '../../Navbar'; // Add this import - adjust path as needed
+import Footer from '../../Footer'; // Add this import - adjust path as needed
 
 function FeedbackDisplay() {
   const [feedbacks] = useState([
@@ -28,11 +30,13 @@ function FeedbackDisplay() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <Navbar /> {/* Added Navbar component here */}
       <div className="container mx-auto px-4 py-12">
         <div className="flex justify-center">
           <FeedbackList feedbacks={feedbacks} />
         </div>
       </div>
+      <Footer /> {/* Added Footer component here */}
     </div>
   );
 }

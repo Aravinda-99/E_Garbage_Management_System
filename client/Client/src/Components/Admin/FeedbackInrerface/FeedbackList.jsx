@@ -1,28 +1,36 @@
-// src/components/FeedbackList.jsx
 import React from 'react';
 
-const FeedbackList = ({ feedbacks }) => {
+function FeedbackList({ feedbacks }) {
   return (
-    <div className="w-full max-w-3xl">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Customer Feedback</h2>
-      <div className="space-y-4">
-        {feedbacks.map((feedback) => (
-          <div key={feedback.id} className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-start">
-              <h3 className="text-lg font-semibold text-gray-700">{feedback.author}</h3>
-              <div className="text-yellow-500">
-                {'★'.repeat(feedback.rating)}{'☆'.repeat(5 - feedback.rating)}
-              </div>
+    <div className="w-full max-w-2xl space-y-6">
+      {feedbacks.map((feedback) => (
+        <div 
+          key={feedback.id} 
+          className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {feedback.author}
+            </h3>
+            <div className="flex items-center">
+              <span className="text-yellow-400 text-xl">{'★'.repeat(feedback.rating)}</span>
+              <span className="text-gray-300">{'★'.repeat(5 - feedback.rating)}</span>
             </div>
-            <p className="text-gray-600 mt-2">{feedback.message}</p>
-            <p className="text-sm text-gray-400 mt-3">
-              {new Date(feedback.createdAt).toLocaleDateString()}
-            </p>
           </div>
-        ))}
-      </div>
+          
+          <p className="text-gray-600 mb-4">{feedback.message}</p>
+          
+          <div className="text-sm text-gray-500">
+            {new Date(feedback.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
-};
+}
 
 export default FeedbackList;
