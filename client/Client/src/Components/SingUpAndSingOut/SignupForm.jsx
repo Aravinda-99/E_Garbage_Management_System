@@ -36,7 +36,7 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -85,9 +85,23 @@ const SignUp = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 rounded-md border ${errors.name ? 'border-red-300' : 'border-gray-300'} 
-                    focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
+        focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+              </div>
+
+              <div>
+                <input
+                  id="contact"
+                  name="contact"
+                  type="tel"
+                  placeholder="Contact Number"
+                  value={formData.contact}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 rounded-md border ${errors.contact ? 'border-red-300' : 'border-gray-300'} 
+        focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
+                />
+                {errors.contact && <p className="mt-1 text-sm text-red-600">{errors.contact}</p>}
               </div>
 
               <div>
@@ -99,7 +113,7 @@ const SignUp = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 rounded-md border ${errors.email ? 'border-red-300' : 'border-gray-300'} 
-                    focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
+        focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
               </div>
@@ -113,10 +127,12 @@ const SignUp = () => {
                   value={formData.password}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 rounded-md border ${errors.password ? 'border-red-300' : 'border-gray-300'} 
-                    focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
+        focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
                 />
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
               </div>
+
+
             </div>
 
             <div className="flex items-center gap-2">
@@ -185,10 +201,10 @@ const SignUp = () => {
         </div>
 
         {/* Image Side */}
-        <div 
+        <div
           className="w-full md:w-1/2 bg-cover bg-center hidden md:block"
-          style={{ 
-            backgroundImage: 'url("https://img.freepik.com/free-photo/arrangement-compost-made-rotten-food-with-copy-space_23-2149073779.jpg?t=st=1743203623~exp=1743207223~hmac=9d148c41a0f11f4579774116c56007ffd4788d5c06b7d4fc3bc1725da218199c&w=1380")',
+          style={{
+            backgroundImage: 'url("https://cdn.leonardo.ai/users/b176c6fa-22d1-42ca-9a74-2d4abae46c6b/generations/645f7e88-5ed3-402a-8a3e-694906d77651/Leonardo_Phoenix_10_A_futuristic_smart_waste_management_system_1.jpg")',
             minHeight: '400px'
           }}
         />
