@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AlertCircle, Calendar, Clock, MapPin, Phone, Mail, User, Check, ChevronDown, Edit } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = "http://localhost:8045/api/v1/request"; // Replace with your backend URL
+const API_BASE_URL = "http://localhost:8045/api/v1/request";
 
 const UpdateRequestForm = ({ requestId, initialData }) => {
   const [formData, setFormData] = useState({
@@ -50,18 +50,33 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[\d\s\-\+\(\)]{10,15}$/;
+    const emailRegex = /^[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\d{10}$/;
 
     if (!formData.requesterName.trim()) newErrors.requesterName = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!emailRegex.test(formData.email)) newErrors.email = 'Please enter a valid email';
-    if (!formData.contactNumbers.trim()) newErrors.contactNumbers = 'Contact number is required';
-    else if (!phoneRegex.test(formData.contactNumbers)) newErrors.contactNumbers = 'Please enter a valid phone number';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      if (/^[0-9]/.test(formData.email)) {
+        newErrors.email = 'Email cannot start with a number';
+      } else if (/[^a-zA-Z0-9._%+-@]/.test(formData.email)) {
+        newErrors.email = 'Email contains invalid characters';
+      } else {
+        newErrors.email = 'Please enter a valid email';
+      }
+    }
+
+    if (!formData.contactNumbers.trim()) {
+      newErrors.contactNumbers = 'Contact number is required';
+    } else if (!phoneRegex.test(formData.contactNumbers)) {
+      newErrors.contactNumbers = 'Please enter exactly 10 digits';
+    }
+
     if (!formData.eventType) newErrors.eventType = 'Please select an event type';
     if (!formData.location.trim()) newErrors.location = 'Location is required';
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
     if (!formData.eventTime) newErrors.eventTime = 'Event time is required';
+
     if (!formData.numberOfCleaners) newErrors.numberOfCleaners = 'Number of cleaners is required';
     if (isNaN(formData.numberOfCleaners)) newErrors.numberOfCleaners = 'Number of cleaners must be a number';
     if (formData.numberOfCleaners < 1) newErrors.numberOfCleaners = 'Number of cleaners must be at least 1';
@@ -72,8 +87,16 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const processedValue = name === 'numberOfCleaners' ? parseInt(value, 10) || 1 : value;
-    
+    let processedValue = value;
+
+    if (name === 'numberOfCleaners') {
+      processedValue = parseInt(value, 10) || 1;
+    } else if (name === 'contactNumbers') {
+      processedValue = value.replace(/\D/g, '').substring(0, 10);
+    } else if (name === 'email') {
+      processedValue = value.replace(/[^a-zA-Z0-9._%+-@]/g, '');
+    }
+
     setFormData({ ...formData, [name]: processedValue });
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
@@ -88,24 +111,18 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
         const finalFormData = {
           ...formData,
           numberOfCleaners: Math.max(1, parseInt(formData.numberOfCleaners, 10) || 1),
-          id: requestId // Include the request ID for update
+          id: requestId
         };
 
-        // Call the API to update the request
         const response = await axios.put(`${API_BASE_URL}/update/${requestId}`, finalFormData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        // Handle the response message
-        const responseMessage = response.data;
         setUpdateSuccess(true);
         setTimeout(() => {
           setUpdateSuccess(false);
         }, 2000);
       } catch (error) {
-        // Handle errors
         if (error.response) {
           setErrors({ submit: error.response.data || 'Failed to update request. Please try again.' });
         } else if (error.request) {
@@ -119,10 +136,7 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
     }
   };
 
-  // Animation classes based on visibility
-  const formAnimationClass = isVisible
-    ? 'opacity-100 scale-100'
-    : 'opacity-0 scale-95';
+  const formAnimationClass = isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95';
 
   return (
     <form
@@ -141,7 +155,6 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
         </div>
       )}
 
-      {/* Centered Heading and Subheading with reveal animation */}
       <div className={`text-center mb-6 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <div className="relative inline-block">
           <span className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center mx-auto">
@@ -176,8 +189,14 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
                 name="requesterName"
                 value={formData.requesterName}
                 onChange={handleChange}
+                onKeyPress={(e) => {
+                  const char = String.fromCharCode(e.keyCode || e.which);
+                  if (!/^[A-Za-z\s]$/.test(char)) e.preventDefault();
+                }}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.requesterName ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Full Name"
+                pattern="[A-Za-z\s]+"
+                title="Please enter only letters and spaces"
               />
             </label>
             {errors.requesterName && <p className="text-xs text-red-500 mt-1">{errors.requesterName}</p>}
@@ -196,6 +215,8 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
                 onChange={handleChange}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.email ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Email Address"
+                pattern="^[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                title="Please enter a valid email (letters, numbers, and ._%+-@ only)"
               />
             </label>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
@@ -214,7 +235,10 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
                   value={formData.contactNumbers}
                   onChange={handleChange}
                   className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.contactNumbers ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
-                  placeholder="Contact Number"
+                  placeholder="Contact Number (10 digits)"
+                  maxLength="10"
+                  pattern="^\d{10}$"
+                  title="Please enter exactly 10 digits"
                 />
               </div>
             </label>
@@ -257,8 +281,13 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
+                onInput={(e) => {
+                  e.target.value = e.target.value.replace(/[^A-Za-z0-9,/]/g, '');
+                }}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.location ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Event Location"
+                pattern="[A-Za-z0-9,/]+"
+                title="Enter location with letters, numbers, commas, and slashes only"
               />
             </label>
             {errors.location && <p className="text-xs text-red-500 mt-1">{errors.location}</p>}
@@ -336,15 +365,15 @@ const UpdateRequestForm = ({ requestId, initialData }) => {
       <button
         type="submit"
         disabled={isSubmitting}
-        className={`${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-          } text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-500 mt-2 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          } delay-500`}
+        className={`${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} 
+          text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-500 mt-2 
+          ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} delay-500`}
       >
         {isSubmitting ? 'Updating...' : 'Update Request'}
       </button>
 
-      <p className={`text-center text-sm text-gray-600 mt-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        } delay-600`}>
+      <p className={`text-center text-sm text-gray-600 mt-2 transition-all duration-700 
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} delay-600`}>
         View your existing requests{' '}
         <a href="#" className="text-blue-600 hover:underline font-medium">
           here
