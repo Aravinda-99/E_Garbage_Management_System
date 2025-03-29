@@ -5,13 +5,19 @@ import axios from 'axios';
 const API_BASE_URL = "http://localhost:8045/api/v1/request"; // Replace with your backend URL
 
 const RequestForm = ({ initialData = {} }) => {
+  // Calculate tomorrow's date
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const minDate = tomorrow.toISOString().split('T')[0]; // e.g., "2025-03-30"
+
   const [formData, setFormData] = useState({
     requesterName: '',
     email: '',
     contactNumbers: '',
     eventType: '',
     location: '',
-    eventDate: '',
+    eventDate: minDate, // Default to tomorrow
     eventTime: '',
     numberOfCleaners: 1, // Default to 1 to match backend requirement
     estimatedDuration: '',
@@ -22,9 +28,8 @@ const RequestForm = ({ initialData = {} }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const formRef = useRef(null);
-
-  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,27 +46,48 @@ const RequestForm = ({ initialData = {} }) => {
       observer.observe(formRef.current);
     }
 
+    const interval = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000);
+
     return () => {
       if (formRef.current) {
         observer.unobserve(formRef.current);
       }
+      clearInterval(interval);
     };
   }, []);
 
   const validateForm = () => {
     const newErrors = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[\d\s\-\+\(\)]{10,15}$/;
+
+    const emailRegex = /^[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\d{10}$/;
 
     if (!formData.requesterName.trim()) newErrors.requesterName = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!emailRegex.test(formData.email)) newErrors.email = 'Please enter a valid email';
-    if (!formData.contactNumbers.trim()) newErrors.contactNumbers = 'Contact number is required';
-    else if (!phoneRegex.test(formData.contactNumbers)) newErrors.contactNumbers = 'Please enter a valid phone number';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!emailRegex.test(formData.email)) {
+      if (/^[0-9]/.test(formData.email)) {
+        newErrors.email = 'Email cannot start with a number';
+      } else if (/[^a-zA-Z0-9._%+-@]/.test(formData.email)) {
+        newErrors.email = 'Email contains invalid characters';
+      } else {
+        newErrors.email = 'Please enter a valid email';
+      }
+    }
+
+    if (!formData.contactNumbers.trim()) {
+      newErrors.contactNumbers = 'Contact number is required';
+    } else if (!phoneRegex.test(formData.contactNumbers)) {
+      newErrors.contactNumbers = 'Please enter exactly 10 digits';
+    }
+
     if (!formData.eventType) newErrors.eventType = 'Please select an event type';
     if (!formData.location.trim()) newErrors.location = 'Location is required';
     if (!formData.eventDate) newErrors.eventDate = 'Event date is required';
     if (!formData.eventTime) newErrors.eventTime = 'Event time is required';
+
     if (!formData.numberOfCleaners) newErrors.numberOfCleaners = 'Number of cleaners is required';
     if (isNaN(formData.numberOfCleaners)) newErrors.numberOfCleaners = 'Number of cleaners must be a number';
     if (formData.numberOfCleaners < 1) newErrors.numberOfCleaners = 'Number of cleaners must be at least 1';
@@ -72,8 +98,16 @@ const RequestForm = ({ initialData = {} }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Convert numberOfCleaners to a number for backend compatibility
-    const processedValue = name === 'numberOfCleaners' ? parseInt(value, 10) || 1 : value;
+    let processedValue = value;
+
+    if (name === 'numberOfCleaners') {
+      processedValue = parseInt(value, 10) || 1;
+    } else if (name === 'contactNumbers') {
+      processedValue = value.replace(/\D/g, '').substring(0, 10);
+    } else if (name === 'email') {
+      // Allow only alphanumeric characters and valid email symbols: ._%+-@
+      processedValue = value.replace(/[^a-zA-Z0-9._%+-@]/g, '');
+    }
 
     setFormData({ ...formData, [name]: processedValue });
     if (errors[name]) {
@@ -86,21 +120,15 @@ const RequestForm = ({ initialData = {} }) => {
     if (validateForm()) {
       setIsSubmitting(true);
       try {
-        // Ensure numberOfCleaners is a number and at least 1
         const finalFormData = {
           ...formData,
           numberOfCleaners: Math.max(1, parseInt(formData.numberOfCleaners, 10) || 1),
         };
 
-        // Call the API to save the request
         const response = await axios.post(`${API_BASE_URL}/save`, finalFormData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         });
 
-        // Handle the response message
-        const responseMessage = response.data;
         setSubmitSuccess(true);
         setTimeout(() => {
           setFormData({
@@ -109,23 +137,19 @@ const RequestForm = ({ initialData = {} }) => {
             contactNumbers: '',
             eventType: '',
             location: '',
-            eventDate: '',
+            eventDate: minDate,
             eventTime: '',
-            numberOfCleaners: 1, // Reset to default
+            numberOfCleaners: 1,
             estimatedDuration: '',
           });
           setSubmitSuccess(false);
         }, 2000);
       } catch (error) {
-        // Handle errors
         if (error.response) {
-          // Server responded with an error
           setErrors({ submit: error.response.data || 'Failed to submit request. Please try again.' });
         } else if (error.request) {
-          // No response received
           setErrors({ submit: 'No response from the server. Please try again.' });
         } else {
-          // Error in setting up the request
           setErrors({ submit: error.message || 'Failed to submit request. Please try again.' });
         }
       } finally {
@@ -134,16 +158,11 @@ const RequestForm = ({ initialData = {} }) => {
     }
   };
 
-  // Animation classes based on visibility
-  const formAnimationClass = isVisible
-    ? 'opacity-100 scale-100'
-    : 'opacity-0 scale-95';
-
-  // Different animation for fields based on their position
-  const getFieldAnimationClass = (index) => {
-    if (!isVisible) return 'opacity-0 translate-x-8';
-    return `opacity-100 translate-x-0 transition-all duration-700 delay-${index * 100}`;
-  };
+  const formAnimationClass = isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95';
+  const getFieldAnimationClass = (index) =>
+    isVisible
+      ? `opacity-100 translate-x-0 transition-all duration-700 delay-${index * 100}`
+      : 'opacity-0 translate-x-8';
 
   return (
     <form
@@ -162,7 +181,6 @@ const RequestForm = ({ initialData = {} }) => {
         </div>
       )}
 
-      {/* Centered Heading and Subheading with reveal animation */}
       <div className={`text-center mb-6 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <div className="relative inline-block">
           <span className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center mx-auto">
@@ -192,14 +210,6 @@ const RequestForm = ({ initialData = {} }) => {
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <User className="w-4 h-4 mr-1" />
               </div>
-              {/* <input
-                type="text"
-                name="requesterName"
-                value={formData.requesterName}
-                onChange={handleChange}
-                className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.requesterName ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
-                placeholder="Full Name"
-              /> */}
               <input
                 type="text"
                 name="requesterName"
@@ -207,9 +217,7 @@ const RequestForm = ({ initialData = {} }) => {
                 onChange={handleChange}
                 onKeyPress={(e) => {
                   const char = String.fromCharCode(e.keyCode || e.which);
-                  if (!/^[A-Za-z\s]$/.test(char)) {
-                    e.preventDefault();
-                  }
+                  if (!/^[A-Za-z\s]$/.test(char)) e.preventDefault();
                 }}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.requesterName ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Full Name"
@@ -233,6 +241,8 @@ const RequestForm = ({ initialData = {} }) => {
                 onChange={handleChange}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.email ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Email Address"
+                pattern="^[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                title="Please enter a valid email (letters, numbers, and ._%+-@ only)"
               />
             </label>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
@@ -251,7 +261,10 @@ const RequestForm = ({ initialData = {} }) => {
                   value={formData.contactNumbers}
                   onChange={handleChange}
                   className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.contactNumbers ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
-                  placeholder="Contact Number"
+                  placeholder="Contact Number (10 digits)"
+                  maxLength="10"
+                  pattern="^\d{10}$"
+                  title="Please enter exactly 10 digits"
                 />
               </div>
             </label>
@@ -294,8 +307,13 @@ const RequestForm = ({ initialData = {} }) => {
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
+                onInput={(e) => {
+                  e.target.value = e.target.value.replace(/[^A-Za-z0-9,/]/g, '');
+                }}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.location ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Event Location"
+                pattern="[A-Za-z0-9,/]+"
+                title="Enter location with letters, numbers, commas, and slashes only"
               />
             </label>
             {errors.location && <p className="text-xs text-red-500 mt-1">{errors.location}</p>}
@@ -312,7 +330,7 @@ const RequestForm = ({ initialData = {} }) => {
                   type="date"
                   name="eventDate"
                   value={formData.eventDate}
-                  min={today}
+                  min={minDate}
                   onChange={handleChange}
                   className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.eventDate ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 />
@@ -373,15 +391,15 @@ const RequestForm = ({ initialData = {} }) => {
       <button
         type="submit"
         disabled={isSubmitting}
-        className={`${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-          } text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-500 mt-2 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          } delay-500`}
+        className={`${isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} 
+          text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all duration-500 mt-2 
+          ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} delay-500`}
       >
         {isSubmitting ? 'Submitting...' : 'Submit Request'}
       </button>
 
-      <p className={`text-center text-sm text-gray-600 mt-2 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        } delay-600`}>
+      <p className={`text-center text-sm text-gray-600 mt-2 transition-all duration-700 
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} delay-600`}>
         View your existing requests{' '}
         <a href="#" className="text-blue-600 hover:underline font-medium">
           here
