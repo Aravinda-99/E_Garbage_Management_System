@@ -117,7 +117,7 @@ const Navbar = () => {
             </Link>
             <Link
               to="/signup"
-              className={`relative px-4 py-2 rounded-full text-white font-medium overflow-hidden transition-all duration-500
+              className={`relative px-4 py-2 rounded-full  text-white font-medium overflow-hidden transition-all duration-500
                 gradient-flow shadow-lg hover:shadow-xl transform hover:scale-105
                 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
               style={{ transitionDelay: '600ms' }}
