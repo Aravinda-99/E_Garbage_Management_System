@@ -233,22 +233,41 @@ const Scheduling = () => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}
+        >
             {/* Fixed Navbar */}
-            
-            <div className="fixed top-0 left-0 right-0 z-50">
+            <motion.div
+                initial={{ y: -100 }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="fixed top-0 left-0 right-0 z-50"
+            >
                 <Navbar />
-            </div>
+            </motion.div>
 
             {/* Added space between Navbar and Uppersec */}
-            <div className="pt-21"> 
-              <Uppersec
-                  notificationsEnabled={notificationsEnabled}
-                  setNotificationsEnabled={setNotificationsEnabled}
-              />
-            </div>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.7 }}
+                className="pt-21"
+            >
+                <Uppersec
+                    notificationsEnabled={notificationsEnabled}
+                    setNotificationsEnabled={setNotificationsEnabled}
+                />
+            </motion.div>
 
-            <div className="flex-1">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="flex-1"
+            >
                 <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}
@@ -256,108 +275,179 @@ const Scheduling = () => {
                         transition={{ duration: 0.5, delay: 0.2 }}
                         className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-6 mb-8"
                     >
-                        <div className="flex flex-col space-y-4 mb-4 bg-green-100/50 p-3 rounded-lg">
-                            <h2 className="text-xl font-semibold text-gray-900">Daily Collection Routes</h2>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <div className="flex flex-col space-y-4 mb-4 bg-green-100/50 p-3 rounded-lg">
+                                <motion.h2
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="text-xl font-semibold text-gray-900"
+                                >
+                                    Daily Collection Routes
+                                </motion.h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* Waste Types Filter */}
-                                <div className="flex items-center space-x-2">
-                                    <Filter className="w-5 h-5 text-gray-600" />
-                                    <Select
-                                        value={filterType}
-                                        onValueChange={setFilterType}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                    className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                                >
+                                    {/* Waste Types Filter */}
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.2 }}
+                                        className="flex items-center space-x-2"
                                     >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Filter by waste type" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-[#2b6a36c1] text-white">
-                                            {allWasteTypes.map(type => (
-                                                <SelectItem
-                                                    key={type}
-                                                    value={type}
-                                                    className="text-white hover:bg-[#2A5A50] focus:bg-[#2A5A50]"
-                                                >
-                                                    {type}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                        <Filter className="w-5 h-5 text-gray-600" />
+                                        <Select
+                                            value={filterType}
+                                            onValueChange={setFilterType}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Filter by waste type" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-[#2b6a36c1] text-white">
+                                                {allWasteTypes.map(type => (
+                                                    <SelectItem
+                                                        key={type}
+                                                        value={type}
+                                                        className="text-white hover:bg-[#2A5A50] focus:bg-[#2A5A50]"
+                                                    >
+                                                        {type}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </motion.div>
 
-                                {/* Location Filter */}
-                                <div className="flex items-center space-x-2">
-                                    <MapPin className="w-5 h-5 text-gray-600" />
-                                    <Select
-                                        value={filterLocation}
-                                        onValueChange={setFilterLocation}
+                                    {/* Location Filter */}
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.3 }}
+                                        className="flex items-center space-x-2"
                                     >
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Filter by location" />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-[#2b6a36a0] text-white">
-                                            {allLocations.map(location => (
-                                                <SelectItem
-                                                    key={location}
-                                                    value={location}
-                                                    className="text-white hover:bg-[#2b6a36c1] focus:bg-[#2A5A50]"
-                                                >
-                                                    {location}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                        <MapPin className="w-5 h-5 text-gray-600" />
+                                        <Select
+                                            value={filterLocation}
+                                            onValueChange={setFilterLocation}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Filter by location" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-[#2b6a36a0] text-white">
+                                                {allLocations.map(location => (
+                                                    <SelectItem
+                                                        key={location}
+                                                        value={location}
+                                                        className="text-white hover:bg-[#2b6a36c1] focus:bg-[#2A5A50]"
+                                                    >
+                                                        {location}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </motion.div>
 
-                                {/* Date Navigation */}
-                                <div className="flex items-center space-x-4">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => {
-                                            const date = new Date(selectedDate);
-                                            date.setDate(date.getDate() - 1);
-                                            handleDateChange(date.toISOString().split('T')[0]);
-                                        }}
-                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    {/* Date Navigation */}
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.4 }}
+                                        className="flex items-center space-x-4"
                                     >
-                                        <ChevronLeft className="w-5 h-5 text-gray-600" />
-                                    </Button>
-                                    <div className="relative flex-1">
-                                        <Input
-                                            type="date"
-                                            value={selectedDate}
-                                            onChange={handleDateInputChange}
-                                            className="block w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        />
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => {
-                                            const date = new Date(selectedDate);
-                                            date.setDate(date.getDate() + 1);
-                                            handleDateChange(date.toISOString().split('T')[0]);
-                                        }}
-                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                    >
-                                        <ChevronRight className="w-5 h-5 text-gray-600" />
-                                    </Button>
-                                </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                const date = new Date(selectedDate);
+                                                date.setDate(date.getDate() - 1);
+                                                handleDateChange(date.toISOString().split('T')[0]);
+                                            }}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        >
+                                            <ChevronLeft className="w-5 h-5 text-gray-600" />
+                                        </Button>
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.5, delay: 0.5 }}
+                                            className="relative flex-1"
+                                        >
+                                            <Input
+                                                type="date"
+                                                value={selectedDate}
+                                                onChange={handleDateInputChange}
+                                                className="block w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            />
+                                        </motion.div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                const date = new Date(selectedDate);
+                                                date.setDate(date.getDate() + 1);
+                                                handleDateChange(date.toISOString().split('T')[0]);
+                                            }}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                        >
+                                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                                        </Button>
+                                    </motion.div>
+                                </motion.div>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        {dateError && <p className="text-red-500 text-sm mt-2">{dateError}</p>}
-                        <div className="flex items-center justify-between">
-                            <div className="text-sm text-gray-600">
+                        <AnimatePresence>
+                            {dateError && (
+                                <motion.p
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="text-red-500 text-sm mt-2"
+                                >
+                                    {dateError}
+                                </motion.p>
+                            )}
+                        </AnimatePresence>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.5 }}
+                            className="flex items-center justify-between"
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.6 }}
+                                className="text-sm text-gray-600"
+                            >
                                 Week {selectedWeek} - {getDayName(selectedDate)}
-                            </div>
-                            <div className="text-sm font-medium text-gray-700">
+                            </motion.div>
+                            <motion.div
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.5, delay: 0.6 }}
+                                className="text-sm font-medium text-gray-700"
+                            >
                                 {getSchedule.length} {getSchedule.length === 1 ? 'collection' : 'collections'} scheduled
-                            </div>
-                        </div>
+                            </motion.div>
+                        </motion.div>
                     </motion.div>
 
-                    <div className="space-y-4">
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.6 }}
+                        className="space-y-4"
+                    >
                         <AnimatePresence>
                             {loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (
@@ -368,14 +458,28 @@ const Scheduling = () => {
                                         exit={{ opacity: 0 }}
                                         className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between animate-pulse"
                                     >
-                                        <div className="flex items-center gap-4">
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ duration: 0.5 }}
+                                            className="flex items-center gap-4"
+                                        >
                                             <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                                            <div>
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.5, delay: 0.1 }}
+                                            >
                                                 <div className="h-4 bg-gray-300 rounded w-40 mb-1"></div>
                                                 <div className="h-3 bg-gray-200 rounded w-32"></div>
-                                            </div>
-                                        </div>
-                                        <div className="w-20 h-8 bg-gray-300 rounded"></div>
+                                            </motion.div>
+                                        </motion.div>
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.5, delay: 0.2 }}
+                                            className="w-20 h-8 bg-gray-300 rounded"
+                                        />
                                     </motion.div>
                                 ))
                             ) : (
@@ -391,45 +495,79 @@ const Scheduling = () => {
                                                 transition={{ duration: 0.3, delay: index * 0.1 }}
                                                 className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between"
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    {getCollectionIcon(collection.type)}
-                                                    <div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <p className="text-lg font-semibold text-gray-900">{collection.type}</p>
-                                                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                                                {collection.route}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-sm text-gray-600">
-                                                            <span className="font-medium">{collection.time}</span>
-                                                        </p>
-                                                        <p className="text-xs text-gray-500 mt-1 flex items-center">
-                                                            <MapPin className="w-3 h-3 mr-1" /> {collection.location}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleToggleReminder(selectedDate, collection)}
-                                                    className={cn(
-                                                        isCurrentlySet
-                                                            ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
-                                                            : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                                                    )}
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    transition={{ duration: 0.5 }}
+                                                    className="flex items-center gap-4"
                                                 >
-                                                    {isCurrentlySet ? (
-                                                        <>
-                                                            <Clock className="w-4 h-4 mr-2" />
-                                                            Clear Reminder
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Bell className="w-4 h-4 mr-2" />
-                                                            Remind Me
-                                                        </>
-                                                    )}
-                                                </Button>
+                                                    {getCollectionIcon(collection.type)}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ duration: 0.5, delay: 0.1 }}
+                                                    >
+                                                        <motion.div
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ duration: 0.5, delay: 0.2 }}
+                                                            className="flex items-center space-x-2"
+                                                        >
+                                                            <p className="text-lg font-semibold text-gray-900">{collection.type}</p>
+                                                            <motion.span
+                                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                transition={{ duration: 0.5, delay: 0.3 }}
+                                                                className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
+                                                            >
+                                                                {collection.route}
+                                                            </motion.span>
+                                                        </motion.div>
+                                                        <motion.p
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ duration: 0.5, delay: 0.4 }}
+                                                            className="text-sm text-gray-600"
+                                                        >
+                                                            <span className="font-medium">{collection.time}</span>
+                                                        </motion.p>
+                                                        <motion.p
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ duration: 0.5, delay: 0.5 }}
+                                                            className="text-xs text-gray-500 mt-1 flex items-center"
+                                                        >
+                                                            <MapPin className="w-3 h-3 mr-1" /> {collection.location}
+                                                        </motion.p>
+                                                    </motion.div>
+                                                </motion.div>
+                                                <motion.div
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                >
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleToggleReminder(selectedDate, collection)}
+                                                        className={cn(
+                                                            isCurrentlySet
+                                                                ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
+                                                                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                                                        )}
+                                                    >
+                                                        {isCurrentlySet ? (
+                                                            <>
+                                                                <Clock className="w-4 h-4 mr-2" />
+                                                                Clear Reminder
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Bell className="w-4 h-4 mr-2" />
+                                                                Remind Me
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </motion.div>
                                             </motion.div>
                                         );
                                     })
@@ -437,25 +575,55 @@ const Scheduling = () => {
                                     <motion.div
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
+                                        transition={{ duration: 0.5 }}
                                         className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-8 text-center"
                                     >
-                                        <Truck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                                        <h3 className="text-lg font-medium text-gray-700">No collections scheduled</h3>
-                                        <p className="text-gray-500 mt-2">
+                                        <motion.div
+                                            animate={{ y: [0, -10, 0] }}
+                                            transition={{ repeat: Infinity, duration: 2 }}
+                                        >
+                                            <Truck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                                        </motion.div>
+                                        <motion.h3
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.5, delay: 0.2 }}
+                                            className="text-lg font-medium text-gray-700"
+                                        >
+                                            No collections scheduled
+                                        </motion.h3>
+                                        <motion.p
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.5, delay: 0.3 }}
+                                            className="text-gray-500 mt-2"
+                                        >
                                             {filterType !== 'All' || filterLocation !== 'All'
                                                 ? "No collections match your filters. Try adjusting your filters."
                                                 : "No waste collections are scheduled for this day."}
-                                        </p>
+                                        </motion.p>
                                     </motion.div>
                                 )
                             )}
                         </AnimatePresence>
-                    </div>
+                    </motion.div>
                 </main>
-            </div>
-            <Timeinfo/>
-            <Footer />
-        </div>
+            </motion.div>
+            <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+            >
+                <Timeinfo />
+            </motion.div>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+            >
+                <Footer />
+            </motion.div>
+        </motion.div>
     );
 };
 
