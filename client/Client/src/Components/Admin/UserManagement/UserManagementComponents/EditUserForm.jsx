@@ -84,8 +84,12 @@ const EditUserForm = ({ user, onUpdateUser, onCancel }) => {
                 id="userFirstName"
                 name="userFirstName"
                 value={formData.userFirstName}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const filteredValue = e.target.value.replace(/[^a-zA-Z]/g, '');
+                  handleChange({ target: { name: 'userFirstName', value: filteredValue } });
+                }}
                 required
+                pattern="[a-zA-Z]+"
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
                 placeholder="Enter first name"
               />
@@ -100,8 +104,12 @@ const EditUserForm = ({ user, onUpdateUser, onCancel }) => {
                 id="userLastName"
                 name="userLastName"
                 value={formData.userLastName}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const filteredValue = e.target.value.replace(/[^a-zA-Z]/g, '');
+                  handleChange({ target: { name: 'userLastName', value: filteredValue } });
+                }}
                 required
+                pattern="[a-zA-Z]+"
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
                 placeholder="Enter last name"
               />
@@ -117,8 +125,15 @@ const EditUserForm = ({ user, onUpdateUser, onCancel }) => {
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
+              onChange={(e) => {
+                let filteredValue = e.target.value.replace(/[^a-zA-Z0-9@._-]/g, '');
+                if (/^[0-9@._-]/.test(filteredValue)) {
+                  filteredValue = filteredValue.replace(/^[0-9@._-]+/, '');
+                }
+                handleChange({ target: { name: 'email', value: filteredValue } });
+              }}
               required
+              pattern="^[a-zA-Z]+[a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
               placeholder="Enter email address"
             />
@@ -133,7 +148,14 @@ const EditUserForm = ({ user, onUpdateUser, onCancel }) => {
                 <input
                   type="tel"
                   value={number}
-                  onChange={(e) => handleContactNumberChange(index, e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                    if (value.length <= 10) {
+                      handleContactNumberChange(index, value);
+                    }
+                  }}
+                  maxLength="10"
+                  pattern="[0-9]{10}"
                   placeholder="Enter phone number"
                   className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
                 />
