@@ -1,15 +1,22 @@
+// Card.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Leaf, AlertTriangle, MessageSquarePlus, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Card = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
+  const navigate = useNavigate();
 
   const handleAction = (type) => {
     setActiveButton(type);
     setTimeout(() => {
-      window.location.href = `/${type}`;
+      if (type === 'feedback') {
+        navigate('/feedback');
+      } else if (type === 'complaint') {
+        navigate('/complain'); // Changed from /FeedBackAndComp${type} to /complain
+      }
     }, 800);
   };
 

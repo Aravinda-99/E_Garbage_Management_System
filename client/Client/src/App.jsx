@@ -16,7 +16,7 @@ import ScheduleManagementOverview from './Components/Admin/timeSchedule/timeOver
 
 import SignUp from './Components/SingUpAndSingOut/SignupForm.jsx'
 import Login from './Components/SingUpAndSingOut/Login.jsx'
-
+import FeedBackAndComp from './Components/Page/FeedbackAndComplains.jsx';
 
 
 function App() {
@@ -44,6 +44,8 @@ function App() {
         <Route path="/SignUp" element={<SignUp />} />
         <Route path="/Login" element={<Login />} />
 
+        <Route path="/feedback" element={<FeedBackAndComp />} />
+        <Route path="/complain" element={<FeedBackAndComp />} />
 
 
       </Routes>
