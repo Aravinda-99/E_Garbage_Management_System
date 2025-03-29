@@ -1,34 +1,79 @@
-// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calendar, Clock, Trash2, Recycle as RecyclingIcon, BatteryCharging, Leaf, Bell, Filter, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, Trash2, Recycle as RecyclingIcon, BatteryCharging, Leaf, Bell, Filter, ChevronLeft, ChevronRight, AlertCircle, MapPin, Truck } from 'lucide-react';
 import { Button } from '../TimeSchedulingComponents/ui/button';
 import { Input } from '../TimeSchedulingComponents/ui/input';
 import { cn } from '../TimeSchedulingComponents/lib/utils';
+import Navbar from '../../Navbar.jsx';
+import Footer from '../../Footer.jsx';
+import Uppersec from '../TimeSch_components/upperSection.jsx';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "../TimeSchedulingComponents/ui/select"
+} from "../TimeSchedulingComponents/ui/select";
 import { toast } from 'sonner';
 
 const Scheduling = () => {
-    const [filter, setFilter] = useState('All');
+    const [filterType, setFilterType] = useState('All');
+    const [filterLocation, setFilterLocation] = useState('All');
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedWeek, setSelectedWeek] = useState(getWeekNumber(new Date()));
     const [dateError, setDateError] = useState('');
-    const [, setFilterError] = useState('');
     const [reminders, setReminders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTimeouts, setActiveTimeouts] = useState({});
 
-    const [user] = useState({
-        name: "John Doe",
-        picture: "https://via.placeholder.com/40",
-    });
+    // Define routes with locations and their collection details
+    const dailyRoutes = {
+        'Monday': [
+            { location: 'Downtown', type: 'General Waste', time: '7:00 AM - 9:00 AM', route: 'Route A' },
+            { location: 'Suburbs', type: 'Recyclables', time: '8:00 AM - 10:00 AM', route: 'Route B' },
+            { location: 'Industrial Area', type: 'Electronic Waste', time: '9:00 AM - 11:00 AM', route: 'Route C' }
+        ],
+        'Tuesday': [
+            { location: 'Rural', type: 'Green Waste', time: '6:00 AM - 8:00 AM', route: 'Route D' },
+            { location: 'Downtown', type: 'Recyclables', time: '10:00 AM - 12:00 PM', route: 'Route A' },
+            { location: 'Suburbs', type: 'General Waste', time: '7:00 AM - 9:00 AM', route: 'Route B' }
+        ],
+        'Wednesday': [
+            { location: 'Industrial Area', type: 'General Waste', time: '5:00 AM - 7:00 AM', route: 'Route C' },
+            { location: 'Rural', type: 'Electronic Waste', time: '8:00 AM - 10:00 AM', route: 'Route D' }
+        ],
+        'Thursday': [
+            { location: 'Downtown', type: 'Green Waste', time: '9:00 AM - 11:00 AM', route: 'Route A' },
+            { location: 'Suburbs', type: 'Electronic Waste', time: '7:00 AM - 9:00 AM', route: 'Route B' }
+        ],
+        'Friday': [
+            { location: 'Industrial Area', type: 'Recyclables', time: '6:00 AM - 8:00 AM', route: 'Route C' },
+            { location: 'Rural', type: 'General Waste', time: '8:00 AM - 10:00 AM', route: 'Route D' }
+        ],
+        'Saturday': [
+            { location: 'Downtown', type: 'Electronic Waste', time: '7:00 AM - 9:00 AM', route: 'Route A' },
+            { location: 'Suburbs', type: 'Green Waste', time: '9:00 AM - 11:00 AM', route: 'Route B' }
+        ],
+        'Sunday': [] // No collections on Sunday
+    };
+
+    // Get all unique locations and waste types for filters
+    const allLocations = useMemo(() => {
+        const locations = new Set();
+        Object.values(dailyRoutes).forEach(day => {
+            day.forEach(collection => locations.add(collection.location));
+        });
+        return ['All', ...Array.from(locations)];
+    }, []);
+
+    const allWasteTypes = useMemo(() => {
+        const types = new Set();
+        Object.values(dailyRoutes).forEach(day => {
+            day.forEach(collection => types.add(collection.type));
+        });
+        return ['All', ...Array.from(types)];
+    }, []);
 
     function getWeekNumber(date) {
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
@@ -43,10 +88,7 @@ const Scheduling = () => {
 
         if (newDate < today) {
             setDateError('You cannot select a past date.');
-            toast.error('Cannot select a past date', {
-                position: 'top-right',
-                duration: 2000
-            });
+            toast.error('Cannot select a past date', { position: 'top-right', duration: 2000 });
         } else {
             setDateError('');
             setSelectedDate(dateString);
@@ -58,326 +100,296 @@ const Scheduling = () => {
         handleDateChange(e.target.value);
     };
 
-    const handleFilterChange = useCallback((newFilter) => {
-        const validFilters = ['All', 'General Waste', 'Recyclables', 'Electronic Waste', 'Green Waste'];
-
-        if (!validFilters.includes(newFilter)) {
-            setFilterError('Invalid filter selected.');
-            toast.error('Invalid filter selected', {
-                position: 'top-right',
-                duration: 2000
-            });
-        } else {
-            setFilterError('');
-            setFilter(newFilter);
-        }
-    }, []);
-
     const getCollectionIcon = (type) => {
         switch (type) {
-            case 'General Waste':
-                return <Trash2 className="w-5 h-5 text-gray-700" />;
-            case 'Recyclables':
-                return <RecyclingIcon className="w-5 h-5 text-green-600" />;
-            case 'Electronic Waste':
-                return <BatteryCharging className="w-5 h-5 text-yellow-500" />;
-            case 'Green Waste':
-                return <Leaf className="w-5 h-5 text-green-800" />;
-            default:
-                return null;
+            case 'General Waste': return <Trash2 className="w-5 h-5 text-gray-700" />;
+            case 'Recyclables': return <RecyclingIcon className="w-5 h-5 text-green-600" />;
+            case 'Electronic Waste': return <BatteryCharging className="w-5 h-5 text-yellow-500" />;
+            case 'Green Waste': return <Leaf className="w-5 h-5 text-green-800" />;
+            default: return null;
         }
     };
 
     const getSchedule = useMemo(() => {
-        const schedule = [];
-        const startDate = new Date(selectedDate);
+        const date = new Date(selectedDate);
+        const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+        const daySchedule = dailyRoutes[dayOfWeek] || [];
 
-        for (let i = 0; i < 7; i++) {
-            const currentDate = new Date(startDate);
-            currentDate.setDate(startDate.getDate() + i);
-            const dateString = currentDate.toISOString().split('T')[0];
+        return daySchedule.filter(collection => {
+            const typeMatch = filterType === 'All' || collection.type === filterType;
+            const locationMatch = filterLocation === 'All' || collection.location === filterLocation;
+            return typeMatch && locationMatch;
+        });
+    }, [selectedDate, filterType, filterLocation]);
 
-            let collectionType;
-            let collectionTime;
-
-            if (selectedWeek % 2 === 0) {
-                switch (i % 4) {
-                    case 0: collectionType = 'General Waste'; collectionTime = '8:00 AM'; break;
-                    case 1: collectionType = 'Recyclables'; collectionTime = '8:00 AM'; break;
-                    case 2: collectionType = 'Electronic Waste'; collectionTime = '9:00 AM'; break;
-                    case 3: collectionType = 'Green Waste'; collectionTime = '9:00 AM'; break;
-                    default: collectionType = 'General Waste'; collectionTime = '8:00 AM';
-                }
-            } else {
-                switch (i % 4) {
-                    case 0: collectionType = 'Recyclables'; collectionTime = '10:00 AM'; break;
-                    case 1: collectionType = 'General Waste'; collectionTime = '10:00 AM'; break;
-                    case 2: collectionType = 'Green Waste'; collectionTime = '11:00 AM'; break;
-                    case 3: collectionType = 'Electronic Waste'; collectionTime = '11:00 AM'; break;
-                    default: collectionType = 'Recyclables'; collectionTime = '10:00 AM';
-                }
-            }
-            if (filter === 'All' || filter === collectionType) {
-                schedule.push({ date: dateString, type: collectionType, time: collectionTime });
-            }
-        }
-        return schedule;
-    }, [selectedDate, selectedWeek, filter]);
-
-    const handleToggleReminder = (date, type, time) => {
-        const reminderId = `${date}-${type}-${time}`;
+    const handleToggleReminder = (date, collection) => {
+        const reminderId = `${date}-${collection.location}-${collection.type}`;
         const existingReminder = reminders.find(r => r.id === reminderId);
-
+        
         if (existingReminder) {
-            // Clear the reminder
             clearTimeout(activeTimeouts[reminderId]);
             setReminders(prev => prev.filter(r => r.id !== reminderId));
-            setActiveTimeouts(prev => {
-                const newTimeouts = {...prev};
-                delete newTimeouts[reminderId];
-                return newTimeouts;
-            });
-            toast.success(`Reminder cleared for ${type} on ${date} at ${time}!`);
+            setActiveTimeouts(prev => { const newTimeouts = { ...prev }; delete newTimeouts[reminderId]; return newTimeouts; });
+            toast.success(`Reminder cleared for ${collection.type} in ${collection.location}!`);
         } else {
-            // Set new reminder
-            const reminderDateTime = new Date(`${date} ${time}`);
+            // Use the start time from the time range for the reminder
+            const startTime = collection.time.split(' - ')[0];
+            const reminderDateTime = new Date(`${date} ${startTime}`);
             const now = new Date();
-
+            
             if (reminderDateTime <= now) {
-                toast.error("Cannot set a reminder for a past time.", {
-                    icon: <AlertCircle />,
-                });
+                toast.error("Cannot set a reminder for a past time.", { icon: <AlertCircle /> });
                 return;
             }
-
-            setReminders(prev => [...prev, { date, type, time, id: reminderId }]);
-            toast.success(`Reminder set for ${type} on ${date} at ${time}!`);
-
+            
+            setReminders(prev => [...prev, { 
+                ...collection,
+                date,
+                id: reminderId 
+            }]);
+            
+            toast.success(`Reminder set for ${collection.type} in ${collection.location}!`);
+            
             const timeUntilReminder = reminderDateTime.getTime() - now.getTime();
             const timeoutId = setTimeout(() => {
                 if (notificationsEnabled) {
-                    alert(`Reminder: ${type} collection on ${date} at ${time}!`);
+                    alert(`Reminder: ${collection.type} collection in ${collection.location} on ${date} between ${collection.time}!`);
                 } else {
-                    toast(`Reminder: ${type} collection on ${date} at ${time}!`);
+                    toast(`Reminder: ${collection.type} collection in ${collection.location} on ${date} between ${collection.time}!`);
                 }
                 setReminders(prev => prev.filter(r => r.id !== reminderId));
-                setActiveTimeouts(prev => {
-                    const newTimeouts = {...prev};
-                    delete newTimeouts[reminderId];
-                    return newTimeouts;
-                });
+                setActiveTimeouts(prev => { const newTimeouts = { ...prev }; delete newTimeouts[reminderId]; return newTimeouts; });
             }, timeUntilReminder);
-
-            setActiveTimeouts(prev => ({
-                ...prev,
-                [reminderId]: timeoutId
-            }));
+            
+            setActiveTimeouts(prev => ({ ...prev, [reminderId]: timeoutId }));
         }
     };
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 500);
-        
+        const timer = setTimeout(() => setLoading(false), 500);
         return () => {
             clearTimeout(timer);
-            // Clean up all active timeouts when component unmounts
             Object.values(activeTimeouts).forEach(timeout => clearTimeout(timeout));
         };
     }, []);
 
-    const isReminderSet = (date, type, time) => {
-        const reminderId = `${date}-${type}-${time}`;
+    const isReminderSet = (date, collection) => {
+        const reminderId = `${date}-${collection.location}-${collection.type}`;
         return reminders.some(r => r.id === reminderId);
     };
 
+    const getDayName = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { weekday: 'long' });
+    };
+
     return (
-        <div className="min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}>
-            <motion.header
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-green-500/90 backdrop-blur-md border-b border-gray-200"
-            >
-                <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-3xl font-bold text-white">
-                            Collection Schedule
-                        </h1>
-                        <div className="flex items-center space-x-4">
-                            <Select onValueChange={handleFilterChange} value={filter}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="All">All</SelectItem>
-                                    <SelectItem value="General Waste">General Waste</SelectItem>
-                                    <SelectItem value="Recyclables">Recyclables</SelectItem>
-                                    <SelectItem value="Electronic Waste">Electronic Waste</SelectItem>
-                                    <SelectItem value="Green Waste">Green Waste</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Button
-                                variant="outline"
-                                className={cn(
-                                    "px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-                                    notificationsEnabled
-                                        ? 'bg-green-700 text-white hover:bg-green-600'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                )}
-                                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                            >
-                                <Bell className="w-4 h-4 mr-2" />
-                                {notificationsEnabled ? 'Notification On' : 'Notification Off'}
-                            </Button>
-                            <div className="flex flex-col items-center gap-1">
-                                <img
-                                    src={user.picture}
-                                    alt="User Profile"
-                                    className="w-10 h-10 rounded-full border-2 border-white"
-                                />
-                                <span className="text-white font-medium text-xs">{user.name}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </motion.header>
+        <div className="flex flex-col min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}>
+            {/* Fixed Navbar */}
+            <div className="fixed top-0 left-0 right-0 z-50">
+                <Navbar />
+            </div>
 
-            <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-6 mb-8"
-                >
-                    <div className="flex items-center justify-between mb-4 bg-green-100/50 p-3 rounded-lg">
-                        <h2 className="text-xl font-semibold text-gray-900">Select Date</h2>
-                        <div className="flex items-center space-x-4">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                    const date = new Date(selectedDate);
-                                    date.setDate(date.getDate() - 1);
-                                    handleDateChange(date.toISOString().split('T')[0]);
-                                }}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <ChevronLeft className="w-5 h-5 text-gray-600" />
-                            </Button>
-                            <div className="relative">
-                                <Input
-                                    type="date"
-                                    value={selectedDate}
-                                    onChange={handleDateInputChange}
-                                    className="block w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                />
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                    const date = new Date(selectedDate);
-                                    date.setDate(date.getDate() + 1);
-                                    handleDateChange(date.toISOString().split('T')[0]);
-                                }}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <ChevronRight className="w-5 h-5 text-gray-600" />
-                            </Button>
-                        </div>
-                    </div>
-                    {dateError && <p className="text-red-500 text-sm mt-2">{dateError}</p>}
-                    <div className="text-sm text-gray-600">
-                        Week {selectedWeek} - {selectedWeek % 2 === 0 ? 'Morning Schedule' : 'Late Morning Schedule'}
-                    </div>
-                </motion.div>
+            <div className="flex-1 pt-16">
+                <Uppersec 
+                    notificationsEnabled={notificationsEnabled} 
+                    setNotificationsEnabled={setNotificationsEnabled} 
+                />
 
-                <div className="space-y-4">
-                    <AnimatePresence>
-                        {loading ? (
-                            Array.from({ length: 3 }).map((_, i) => (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 0.5 }}
-                                    exit={{ opacity: 0 }}
-                                    className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between animate-pulse"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-                                        <div>
-                                            <div className="h-4 bg-gray-300 rounded w-40 mb-1"></div>
-                                            <div className="h-3 bg-gray-200 rounded w-32"></div>
-                                        </div>
+                <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-6 mb-8"
+                    >
+                        <div className="flex flex-col space-y-4 mb-4 bg-green-100/50 p-3 rounded-lg">
+                            <h2 className="text-xl font-semibold text-gray-900">Daily Collection Routes</h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="flex items-center space-x-2">
+                                    <Filter className="w-5 h-5 text-gray-600" />
+                                    <Select
+                                        value={filterType}
+                                        onValueChange={setFilterType}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Filter by waste type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {allWasteTypes.map(type => (
+                                                <SelectItem key={type} value={type}>
+                                                    {type}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                    <MapPin className="w-5 h-5 text-gray-600" />
+                                    <Select
+                                        value={filterLocation}
+                                        onValueChange={setFilterLocation}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Filter by location" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {allLocations.map(location => (
+                                                <SelectItem key={location} value={location}>
+                                                    {location}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                
+                                <div className="flex items-center space-x-4">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            const date = new Date(selectedDate);
+                                            date.setDate(date.getDate() - 1);
+                                            handleDateChange(date.toISOString().split('T')[0]);
+                                        }}
+                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 text-gray-600" />
+                                    </Button>
+                                    <div className="relative flex-1">
+                                        <Input
+                                            type="date"
+                                            value={selectedDate}
+                                            onChange={handleDateInputChange}
+                                            className="block w-full px-4 py-2 text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        />
                                     </div>
-                                    <div className="w-20 h-8 bg-gray-300 rounded"></div>
-                                </motion.div>
-                            ))
-                        ) : (
-                            getSchedule.map((item, index) => {
-                                const isCurrentlySet = isReminderSet(item.date, item.type, item.time);
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            const date = new Date(selectedDate);
+                                            date.setDate(date.getDate() + 1);
+                                            handleDateChange(date.toISOString().split('T')[0]);
+                                        }}
+                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    >
+                                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {dateError && <p className="text-red-500 text-sm mt-2">{dateError}</p>}
+                        <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                                Week {selectedWeek} - {getDayName(selectedDate)}
+                            </div>
+                            <div className="text-sm font-medium text-gray-700">
+                                {getSchedule.length} {getSchedule.length === 1 ? 'collection' : 'collections'} scheduled
+                            </div>
+                        </div>
+                    </motion.div>
 
-                                return (
+                    <div className="space-y-4">
+                        <AnimatePresence>
+                            {loading ? (
+                                Array.from({ length: 3 }).map((_, i) => (
                                     <motion.div
-                                        key={index}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                                        className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between"
+                                        key={i}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 0.5 }}
+                                        exit={{ opacity: 0 }}
+                                        className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between animate-pulse"
                                     >
                                         <div className="flex items-center gap-4">
-                                            {getCollectionIcon(item.type)}
+                                            <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
                                             <div>
-                                                <p className="text-lg font-semibold text-gray-900">{item.type}</p>
-                                                <p className="text-sm text-gray-600">
-                                                    {new Date(item.date).toLocaleDateString('en-US', {
-                                                        weekday: 'long',
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric',
-                                                    })}
-                                                    {' - '}
-                                                    {item.time}
-                                                </p>
+                                                <div className="h-4 bg-gray-300 rounded w-40 mb-1"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-32"></div>
                                             </div>
                                         </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleToggleReminder(item.date, item.type, item.time)}
-                                            className={cn(
-                                                isCurrentlySet
-                                                    ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
-                                                    : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                                            )}
-                                        >
-                                            {isCurrentlySet ? (
-                                                <>
-                                                    <Clock className="w-4 h-4 mr-2" />
-                                                    Clear Reminder
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Bell className="w-4 h-4 mr-2" />
-                                                    Remind Me
-                                                </>
-                                            )}
-                                        </Button>
+                                        <div className="w-20 h-8 bg-gray-300 rounded"></div>
                                     </motion.div>
-                                );
-                            })
-                        )}
-                    </AnimatePresence>
-                </div>
-                {getSchedule.length === 0 && !loading && (
-                    <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 text-center">
-                        <p className="text-gray-500">No collections scheduled for the selected filter.</p>
+                                ))
+                            ) : (
+                                getSchedule.length > 0 ? (
+                                    getSchedule.map((collection, index) => {
+                                        const isCurrentlySet = isReminderSet(selectedDate, collection);
+                                        return (
+                                            <motion.div
+                                                key={index}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: 20 }}
+                                                transition={{ duration: 0.3, delay: index * 0.1 }}
+                                                className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    {getCollectionIcon(collection.type)}
+                                                    <div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <p className="text-lg font-semibold text-gray-900">{collection.type}</p>
+                                                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                                                {collection.route}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600">
+                                                            <span className="font-medium">{collection.time}</span>
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 mt-1 flex items-center">
+                                                            <MapPin className="w-3 h-3 mr-1" /> {collection.location}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleToggleReminder(selectedDate, collection)}
+                                                    className={cn(
+                                                        isCurrentlySet
+                                                            ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
+                                                            : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                                                    )}
+                                                >
+                                                    {isCurrentlySet ? (
+                                                        <>
+                                                            <Clock className="w-4 h-4 mr-2" />
+                                                            Clear Reminder
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Bell className="w-4 h-4 mr-2" />
+                                                            Remind Me
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </motion.div>
+                                        );
+                                    })
+                                ) : (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-8 text-center"
+                                    >
+                                        <Truck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-700">No collections scheduled</h3>
+                                        <p className="text-gray-500 mt-2">
+                                            {filterType !== 'All' || filterLocation !== 'All' 
+                                                ? "No collections match your filters. Try adjusting your filters."
+                                                : "No waste collections are scheduled for this day."}
+                                        </p>
+                                    </motion.div>
+                                )
+                            )}
+                        </AnimatePresence>
                     </div>
-                )}
-            </main>
+                </main>
+            </div>
+            <Footer />
         </div>
     );
 };

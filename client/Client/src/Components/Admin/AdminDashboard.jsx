@@ -3,6 +3,7 @@ import SideBar from './dashbordComponent/SideBar.jsx';
 import DashboardOverview from './dashbordComponent/DashboardOverview.jsx';
 import UserManagementOverView from './UserManagement/UserManagementOverView.jsx'
 import RequestManagementOverview from './RequestManagement/RequestManagementOverview.jsx'
+import TimeManagementOverview from './timeSchedule/timeOverview.jsx';
 
 const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -32,6 +33,7 @@ const AdminDashboard = () => {
         {activeItem === 'Dashboard' && <DashboardOverview />}
         {activeItem === 'User Management' && < UserManagementOverView/>}
         {activeItem === 'Request Management' && < RequestManagementOverview/>}
+        {activeItem === 'Time Schedules' && < TimeManagementOverview/>}
         {/* Add other components for other menu items here */}
         {/* Example:
         {activeItem === 'Inventory' && <InventoryComponent />}
