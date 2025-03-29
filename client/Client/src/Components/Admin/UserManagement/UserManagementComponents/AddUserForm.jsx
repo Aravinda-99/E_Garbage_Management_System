@@ -44,7 +44,7 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const cleanedContactNumbers = formData.contactNumbers.filter(number => number.trim() !== '');
-    
+
     const newUser = {
       ...formData,
       userId: Date.now(),
@@ -54,20 +54,22 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
     onAddUser(newUser);
   };
 
+
+
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-gray-600 bg-opacity-30 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg transform transition-all duration-300 scale-100 hover:scale-[1.02]">
         <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Add New User
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label htmlFor="userFirstName" className="block text-sm font-semibold text-gray-700 mb-2">
                 First Name
               </label>
-              <input
+              {/* <input
                 type="text"
                 id="userFirstName"
                 name="userFirstName"
@@ -76,14 +78,30 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
                 placeholder="Enter first name"
+              /> */}
+
+              <input
+                type="text"
+                id="userFirstName"
+                name="userFirstName"
+                value={formData.userFirstName}
+                onChange={(e) => {
+                  const filteredValue = e.target.value.replace(/[^a-zA-Z]/g, '');
+                  handleChange({ target: { name: 'userFirstName', value: filteredValue } });
+                }}
+                required
+                pattern="[a-zA-Z]+"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
+                placeholder="Enter first name"
               />
+
             </div>
-            
+
             <div>
               <label htmlFor="userLastName" className="block text-sm font-semibold text-gray-700 mb-2">
                 Last Name
               </label>
-              <input
+              {/* <input
                 type="text"
                 id="userLastName"
                 name="userLastName"
@@ -92,7 +110,23 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
                 placeholder="Enter last name"
+              /> */}
+
+              <input
+                type="text"
+                id="userLastName"
+                name="userLastName"
+                value={formData.userLastName}
+                onChange={(e) => {
+                  const filteredValue = e.target.value.replace(/[^a-zA-Z]/g, '');
+                  handleChange({ target: { name: 'userLastName', value: filteredValue } });
+                }}
+                required
+                pattern="[a-zA-Z]+"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
+                placeholder="Enter last name"
               />
+
             </div>
           </div>
 
@@ -100,7 +134,7 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
             <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
               Email Address
             </label>
-            <input
+            {/* <input
               type="email"
               id="email"
               name="email"
@@ -109,7 +143,30 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
               required
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
               placeholder="Enter email address"
+            /> */}
+
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={(e) => {
+                // Allow letters, numbers, and common email characters like @, ., -, _, +
+                let filteredValue = e.target.value.replace(/[^a-zA-Z0-9@._-]/g, '');
+                // Prevent starting with a number or special character (optional)
+                if (/^[0-9@._-]/.test(filteredValue)) {
+                  filteredValue = filteredValue.replace(/^[0-9@._-]+/, '');
+                }
+                handleChange({ target: { name: 'email', value: filteredValue } });
+              }}
+              required
+              pattern="^[a-zA-Z]+[a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
+              placeholder="Enter email address"
             />
+
+
+
           </div>
 
           <div>
@@ -118,13 +175,28 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
             </label>
             {formData.contactNumbers.map((number, index) => (
               <div key={index} className="flex items-center space-x-3 mb-3">
-                <input
+                {/* <input
                   type="tel"
                   value={number}
                   onChange={(e) => handleContactNumberChange(index, e.target.value)}
                   placeholder="Enter phone number"
                   className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
+                /> */}
+                <input
+                  type="tel"
+                  value={number}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                    if (value.length <= 10) {
+                      handleContactNumberChange(index, value);
+                    }
+                  }}
+                  maxLength="10"
+                  pattern="[0-9]{10}"
+                  placeholder="Enter phone number"
+                  className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200 hover:border-blue-300"
                 />
+
                 {index > 0 && (
                   <button
                     type="button"
