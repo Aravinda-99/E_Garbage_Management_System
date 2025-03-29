@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import TimeStatistics from '../dashbordComponent/timeStatistics.jsx'; // Adjust path as needed
 import TimeTable from './timeOverviewComponents/timeTable.jsx'; // Adjust path as needed
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { jsPDF } from 'jspdf'; // Import jsPDF for PDF generation
 
 const TimeManagementOverview = () => {
   // State for schedules and statistics
@@ -19,7 +20,7 @@ const TimeManagementOverview = () => {
     date: '',
     time: '',
     location: '',
-    wasteType: '', // Added wasteType
+    wasteType: '',
     status: 'pending',
   });
 
@@ -105,18 +106,92 @@ const TimeManagementOverview = () => {
     setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
   };
 
+  // Generate PDF for schedules
+  const handleGeneratePDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('Waste Collection Schedules', 20, 20);
+
+    doc.setFontSize(12);
+    doc.text('Generated on: ' + new Date().toLocaleDateString(), 20, 30);
+
+    // Table headers
+    const headers = ['Date', 'Time', 'Location', 'Waste Type', 'Status'];
+    const startY = 40;
+    let y = startY;
+
+    // Draw headers
+    doc.setFontSize(10);
+    headers.forEach((header, index) => {
+      doc.text(header, 20 + index * 35, y);
+    });
+
+    // Draw schedule data
+    y += 10;
+    schedules.forEach((schedule, index) => {
+      doc.text(schedule.date, 20, y + index * 10);
+      doc.text(schedule.time, 55, y + index * 10);
+      doc.text(schedule.location, 90, y + index * 10);
+      doc.text(schedule.wasteType, 125, y + index * 10);
+      doc.text(schedule.status, 160, y + index * 10);
+    });
+
+    // Save the PDF
+    doc.save('waste-collection-schedules.pdf');
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Waste Collection Schedule Management</h1>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="p-6"
+    >
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-2xl font-bold mb-6"
+      >
+        Waste Collection Schedule Management
+      </motion.h1>
 
       {/* Time Statistics Cards */}
-      <TimeStatistics stats={timeStats} />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <TimeStatistics stats={timeStats} />
+      </motion.div>
 
       {/* Create New Schedule Form */}
-      <div className="mt-8 bg-gray-50 p-4 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Create New Schedule</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="relative">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="mt-8 bg-gray-50 p-4 rounded-lg"
+      >
+        <motion.h2
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-xl font-semibold mb-4"
+        >
+          Create New Schedule
+        </motion.h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-5 gap-4"
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="relative"
+          >
             <input
               type="date"
               name="date"
@@ -125,9 +200,26 @@ const TimeManagementOverview = () => {
               className={`p-2 border rounded ${errors.date ? 'border-red-500' : ''}`}
               placeholder="Date"
             />
-            {errors.date && <p className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5">{errors.date}</p>}
-          </div>
-          <div className="relative">
+            <AnimatePresence>
+              {errors.date && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
+                >
+                  {errors.date}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="relative"
+          >
             <input
               type="time"
               name="time"
@@ -136,9 +228,26 @@ const TimeManagementOverview = () => {
               className={`p-2 border rounded ${errors.time ? 'border-red-500' : ''}`}
               placeholder="Time"
             />
-            {errors.time && <p className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5">{errors.time}</p>}
-          </div>
-          <div className="relative">
+            <AnimatePresence>
+              {errors.time && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
+                >
+                  {errors.time}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="relative"
+          >
             <input
               type="text"
               name="location"
@@ -147,9 +256,26 @@ const TimeManagementOverview = () => {
               className={`p-2 border rounded ${errors.location ? 'border-red-500' : ''}`}
               placeholder="Location"
             />
-            {errors.location && <p className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5">{errors.location}</p>}
-          </div>
-          <div className="relative">
+            <AnimatePresence>
+              {errors.location && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
+                >
+                  {errors.location}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="relative"
+          >
             <select
               name="wasteType"
               value={newSchedule.wasteType}
@@ -162,42 +288,89 @@ const TimeManagementOverview = () => {
               <option value="Hazardous">Hazardous</option>
               <option value="General">General</option>
             </select>
-            {errors.wasteType && <p className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5">{errors.wasteType}</p>}
-          </div>
-          <button
+            <AnimatePresence>
+              {errors.wasteType && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
+                >
+                  {errors.wasteType}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleCreateSchedule}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Add Schedule
-          </button>
-        </div>
-      </div>
+          </motion.button>
+        </motion.div>
+      </motion.div>
 
       {/* Schedule Table Section */}
-      <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Collection Schedules</h2>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-            Generate Weekly Plan
-          </button>
-        </div>
-        <TimeTable
-          schedules={schedules}
-          onDelete={handleDeleteSchedule}
-          onEdit={handleEditSchedule}
-          onApprove={handleApproveSchedule}
-        />
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="mt-8"
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex justify-between items-center mb-4"
+        >
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-xl font-semibold"
+          >
+            Collection Schedules
+          </motion.h2>
+          {/* Removed Generate Weekly Plan button */}
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <TimeTable
+            schedules={schedules}
+            onDelete={handleDeleteSchedule}
+            onEdit={handleEditSchedule}
+            onApprove={handleApproveSchedule}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Bulk Operations */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
         className="mt-8 bg-white shadow-lg rounded-xl p-6"
       >
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Bulk Operations</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <motion.h2
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-xl font-semibold text-gray-700 mb-4"
+        >
+          Bulk Operations
+        </motion.h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4"
+        >
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -231,9 +404,17 @@ const TimeManagementOverview = () => {
           >
             Export Schedule
           </motion.button>
-        </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleGeneratePDF}
+            className="w-full bg-green-800 text-white px-4 py-3 rounded-lg hover:bg-green-900 focus:ring-2 focus:ring-green-700 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
+          >
+            Generate PDF
+          </motion.button>
+        </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 
