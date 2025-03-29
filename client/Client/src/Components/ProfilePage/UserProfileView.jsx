@@ -132,6 +132,29 @@ const UserProfileView = () => {
             </div>
           </div>
         )}
+
+        {/* Call to Action */}
+        <div className="mt-20 bg-gradient-to-r bg-emerald-900 to-teal-600 rounded-2xl shadow-xl overflow-hidden mx-4">
+            <div className="px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-white sm:text-3xl">
+                  Want to install smart bins in your area?
+                </h2>
+                <p className="mt-4 text-emerald-100 max-w-2xl mx-auto">
+                  Join our smart city initiative and contribute to cleaner, more sustainable urban environments.
+                </p>
+                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                  <button className="px-6 py-3 bg-white text-emerald-700 font-medium rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    Request Installation
+                  </button>
+                  <button className="px-6 py-3 bg-transparent border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-all duration-300">
+                    Learn About Our Program
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
       </div>
       <Footer />
     </div>
