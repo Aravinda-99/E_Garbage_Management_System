@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Edit, Plus, X, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -31,6 +31,16 @@ const getWasteTypeIcon = (type) => {
   }
 };
 
+const formatDateTime = (date) => {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
 const BinLocationsAdmin = () => {
   const [locations, setLocations] = useState(initialLocations);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,28 +51,97 @@ const BinLocationsAdmin = () => {
     address: '',
     wasteType: 'organic',
     status: 'empty',
-    lastUpdated: new Date().toISOString().slice(0, 16).replace('T', ' ')
+    lastUpdated: formatDateTime(new Date())
   });
+  const [errors, setErrors] = useState({
+    latitude: '',
+    longitude: '',
+    address: ''
+  });
+
+  // Validate form fields
+  const validateForm = () => {
+    let valid = true;
+    const newErrors = {
+      latitude: '',
+      longitude: '',
+      address: ''
+    };
+
+    if (!newLocation.address.trim()) {
+      newErrors.address = 'Address is required';
+      valid = false;
+    }
+
+    if (!newLocation.latitude) {
+      newErrors.latitude = 'Latitude is required';
+      valid = false;
+    } else if (isNaN(newLocation.latitude) || newLocation.latitude < -90 || newLocation.latitude > 90) {
+      newErrors.latitude = 'Latitude must be between -90 and 90';
+      valid = false;
+    }
+
+    if (!newLocation.longitude) {
+      newErrors.longitude = 'Longitude is required';
+      valid = false;
+    } else if (isNaN(newLocation.longitude) || newLocation.longitude < -180 || newLocation.longitude > 180) {
+      newErrors.longitude = 'Longitude must be between -180 and 180';
+      valid = false;
+    }
+
+    setErrors(newErrors);
+    return valid;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewLocation((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSaveLocation = () => {
-    if (!newLocation.latitude || !newLocation.longitude || !newLocation.address || !newLocation.wasteType || !newLocation.status) {
-      toast.error('Please fill in all fields.');
+    if (!validateForm()) {
       return;
     }
+
+    const currentDateTime = formatDateTime(new Date());
+    
     if (editingLocation) {
-      setLocations((prev) => prev.map((loc) => loc.id === editingLocation.id ? { ...loc, ...newLocation, id: loc.id } : loc));
+      setLocations((prev) => prev.map((loc) => 
+        loc.id === editingLocation.id ? { 
+          ...loc, 
+          ...newLocation, 
+          id: loc.id,
+          latitude: parseFloat(newLocation.latitude),
+          longitude: parseFloat(newLocation.longitude),
+          lastUpdated: currentDateTime
+        } : loc
+      ));
       toast.success('Location updated successfully!');
     } else {
       const newId = locations.length ? Math.max(...locations.map((loc) => loc.id)) + 1 : 1;
-      setLocations((prev) => [...prev, { ...newLocation, id: newId, latitude: parseFloat(newLocation.latitude), longitude: parseFloat(newLocation.longitude) }]);
+      setLocations((prev) => [...prev, { 
+        ...newLocation, 
+        id: newId, 
+        latitude: parseFloat(newLocation.latitude), 
+        longitude: parseFloat(newLocation.longitude),
+        lastUpdated: currentDateTime
+      }]);
       toast.success('Location added successfully!');
     }
-    setNewLocation({ latitude: '', longitude: '', address: '', wasteType: 'organic', status: 'empty', lastUpdated: new Date().toISOString().slice(0, 16).replace('T', ' ') });
+    
+    setNewLocation({ 
+      latitude: '', 
+      longitude: '', 
+      address: '', 
+      wasteType: 'organic', 
+      status: 'empty', 
+      lastUpdated: currentDateTime 
+    });
     setEditingLocation(null);
     setIsModalOpen(false);
   };
@@ -74,13 +153,29 @@ const BinLocationsAdmin = () => {
 
   const handleEditLocation = (location) => {
     setEditingLocation(location);
-    setNewLocation({ ...location });
+    setNewLocation({ 
+      ...location, 
+      latitude: location.latitude.toString(),
+      longitude: location.longitude.toString()
+    });
     setIsModalOpen(true);
   };
 
   const handleAddLocation = () => {
     setEditingLocation(null);
-    setNewLocation({ latitude: '', longitude: '', address: '', wasteType: 'organic', status: 'empty', lastUpdated: new Date().toISOString().slice(0, 16).replace('T', ' ') });
+    setNewLocation({ 
+      latitude: '', 
+      longitude: '', 
+      address: '', 
+      wasteType: 'organic', 
+      status: 'empty', 
+      lastUpdated: formatDateTime(new Date()) 
+    });
+    setErrors({
+      latitude: '',
+      longitude: '',
+      address: ''
+    });
     setIsModalOpen(true);
   };
 
@@ -201,40 +296,47 @@ const BinLocationsAdmin = () => {
             </div>
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-[#64748B] mb-1">Address</label>
+                <label className="block text-sm font-medium text-[#64748B] mb-1">Address *</label>
                 <input
                   type="text"
                   name="address"
                   value={newLocation.address}
                   onChange={handleInputChange}
-                  className="w-full p-3 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]"
+                  className={`w-full p-3 border ${errors.address ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]`}
                   placeholder="Enter address"
                 />
+                {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#64748B] mb-1">Latitude</label>
+                  <label className="block text-sm font-medium text-[#64748B] mb-1">Latitude *</label>
                   <input
                     type="number"
                     name="latitude"
                     value={newLocation.latitude}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]"
+                    className={`w-full p-3 border ${errors.latitude ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]`}
                     placeholder="e.g., 6.927079"
                     step="any"
+                    min="-90"
+                    max="90"
                   />
+                  {errors.latitude && <p className="mt-1 text-sm text-red-500">{errors.latitude}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#64748B] mb-1">Longitude</label>
+                  <label className="block text-sm font-medium text-[#64748B] mb-1">Longitude *</label>
                   <input
                     type="number"
                     name="longitude"
                     value={newLocation.longitude}
                     onChange={handleInputChange}
-                    className="w-full p-3 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]"
+                    className={`w-full p-3 border ${errors.longitude ? 'border-red-500' : 'border-[#E2E8F0]'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]`}
                     placeholder="e.g., 79.861244"
                     step="any"
+                    min="-180"
+                    max="180"
                   />
+                  {errors.longitude && <p className="mt-1 text-sm text-red-500">{errors.longitude}</p>}
                 </div>
               </div>
               <div>
@@ -270,9 +372,8 @@ const BinLocationsAdmin = () => {
                   type="text"
                   name="lastUpdated"
                   value={newLocation.lastUpdated}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-[#E2E8F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#14B8A6] bg-[#F8FAFC] text-[#1E293B]"
-                  placeholder="e.g., 2024-03-15 10:30"
+                  readOnly
+                  className="w-full p-3 border border-[#E2E8F0] rounded-lg bg-[#F1F5F9] text-[#64748B] cursor-not-allowed"
                 />
               </div>
             </div>
