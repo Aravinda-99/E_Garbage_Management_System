@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { MapPin, Trash2, AlertCircle, CheckCircle2, Search, Filter, ChevronRight, Info } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -97,6 +97,7 @@ const BinLocations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWasteType, setSelectedWasteType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const mapRef = useRef(null);
 
   const handleLocationClick = (location) => {
     setSelectedLocation(location);
@@ -104,6 +105,10 @@ const BinLocations = () => {
       `https://www.google.com/maps?q=${location.latitude},${location.longitude}`,
       '_blank'
     );
+  };
+
+  const scrollToMap = () => {
+    mapRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const filteredLocations = mockLocations.filter(location => {
@@ -153,6 +158,7 @@ const BinLocations = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-3 bg-white text-emerald-800 font-medium rounded-full hover:bg-emerald-100 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl"
+              onClick={scrollToMap}
             >
               <MapPin size={18} /> View Map
             </motion.button>
@@ -310,7 +316,7 @@ const BinLocations = () => {
             className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4"
           >
             {/* Map Section */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2" ref={mapRef}>
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
