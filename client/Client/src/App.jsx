@@ -11,8 +11,12 @@ import BinLocations from './Components/BinLocations/BinLocations.jsx';
 import BinLocationsAdmin from './Components/BinLocations/BinLocationsAdmin.jsx'; 
 import 'leaflet/dist/leaflet.css';
 import TimeScheduling from './Components/TimeSchedulingPage/TimeSchedulingComponents/TimeScheduling.jsx'
+
+import ScheduleManagementOverview from './Components/Admin/timeSchedule/timeOverview.jsx'
+
 import SignUp from './Components/SingUpAndSingOut/SignupForm.jsx'
 import Login from './Components/SingUpAndSingOut/Login.jsx'
+
 
 
 function App() {
@@ -34,11 +38,14 @@ function App() {
         <Route path="/admin/bin-locations" element={<BinLocationsAdmin />} /> 
         <Route path="/time" element={<TimeScheduling />} />
 
+        <Route path="/ScheduleManagementOverview" element={<ScheduleManagementOverview />} />
+
+
         <Route path="/SignUp" element={<SignUp />} />
         <Route path="/Login" element={<Login />} />
 
 
-        
+
       </Routes>
     </React.Fragment>
   );
