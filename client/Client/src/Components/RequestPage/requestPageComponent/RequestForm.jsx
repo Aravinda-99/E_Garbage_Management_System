@@ -74,7 +74,7 @@ const RequestForm = ({ initialData = {} }) => {
     const { name, value } = e.target;
     // Convert numberOfCleaners to a number for backend compatibility
     const processedValue = name === 'numberOfCleaners' ? parseInt(value, 10) || 1 : value;
-    
+
     setFormData({ ...formData, [name]: processedValue });
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
@@ -192,13 +192,29 @@ const RequestForm = ({ initialData = {} }) => {
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <User className="w-4 h-4 mr-1" />
               </div>
-              <input
+              {/* <input
                 type="text"
                 name="requesterName"
                 value={formData.requesterName}
                 onChange={handleChange}
                 className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.requesterName ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
                 placeholder="Full Name"
+              /> */}
+              <input
+                type="text"
+                name="requesterName"
+                value={formData.requesterName}
+                onChange={handleChange}
+                onKeyPress={(e) => {
+                  const char = String.fromCharCode(e.keyCode || e.which);
+                  if (!/^[A-Za-z\s]$/.test(char)) {
+                    e.preventDefault();
+                  }
+                }}
+                className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.requesterName ? 'border-red-400' : 'border-gray-300'} rounded-lg transition-all duration-300`}
+                placeholder="Full Name"
+                pattern="[A-Za-z\s]+"
+                title="Please enter only letters and spaces"
               />
             </label>
             {errors.requesterName && <p className="text-xs text-red-500 mt-1">{errors.requesterName}</p>}
