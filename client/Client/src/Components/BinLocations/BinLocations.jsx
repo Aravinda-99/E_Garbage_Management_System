@@ -18,7 +18,10 @@ const mockLocations = [
   { id: 2, latitude: 6.914741, longitude: 79.872128, address: "Galle Face Green, Colombo", wasteType: "plastic", status: "empty", lastUpdated: "2024-03-15 09:45" },
   { id: 3, latitude: 6.901691, longitude: 79.856975, address: "Kollupitiya, Colombo", wasteType: "paper", status: "full", lastUpdated: "2024-03-15 11:15" },
   { id: 4, latitude: 6.935821, longitude: 79.850726, address: "Maradana, Colombo", wasteType: "metal", status: "empty", lastUpdated: "2024-03-15 12:00" },
-  { id: 5, latitude: 6.906079, longitude: 79.873157, address: "Bambalapitiya, Colombo", wasteType: "plastic", status: "half-full", lastUpdated: "2024-03-15 11:45" }
+  { id: 5, latitude: 6.906079, longitude: 79.873157, address: "Bambalapitiya, Colombo", wasteType: "plastic", status: "half-full", lastUpdated: "2024-03-15 11:45" },
+  { id: 6, latitude: 6.9047, longitude: 79.9547, address: "Malabe", wasteType: "organic", status: "full", lastUpdated: "2024-03-15 13:00" },
+  { id: 7, latitude: 6.9107, longitude: 79.9185, address: "Kotte", wasteType: "plastic", status: "half-full", lastUpdated: "2024-03-15 13:15" },
+  { id: 8, latitude: 6.9155, longitude: 79.9285, address: "Rajagiriya", wasteType: "paper", status: "empty", lastUpdated: "2024-03-15 13:30" }
 ];
 
 // Updated utility functions with refined colors
@@ -71,58 +74,105 @@ const BinLocations = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="py-30 min-h-screen bg-gradient-to-b from-green-50 to-white py-16 px-4 sm:px-6 lg:px-8 font-sans">
+      {/* Added z-index to ensure Navbar stays on top */}
+      <Navbar className="z-50" />
+      <div className="py-30 min-h-screen bg-gradient-to-b from-green-50 to-white py-16 px-4 sm:px-6 lg:px-8 font-sans pt-20">
         <div className="max-w-7xl mx-auto">
           
+          {/* New Banner Section */}
+          <div className="text-center py-20 bg-emerald-900 z-10">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+            Bin Locations
+            </h1>
+            <p className="text-lg text-emerald-200 max-w-2xl mx-auto">
+            Track and manage waste bins in real-time
+            </p>
+          </div>
+
           {/* Header */}
-          <div className="mb-8 text-center">
+          {/* <div className="mb-8 text-center">
             <h1 className="text-4xl sm:text-5xl font-bold text-green-700 tracking-tight">
               Bin Locations
             </h1>
             <p className="mt-2 text-lg text-gray-600">Track and manage waste bins in real-time</p>
-          </div>
+          </div> */}
 
           {/* Search and Filter Section */}
-          <div className="bg-white rounded-2xl shadow-md p-6 mb-8 border border-green-100">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <div className="py- bg-white/30 backdrop-blur-lg rounded-2xl shadow-lg p-5 mb-8 border border-green-100/50 transition-all duration-300 hover:shadow-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Search Bar */}
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-green-600 transition-colors duration-300" size={18} />
                 <input
                   type="text"
                   placeholder="Search by location..."
-                  className="pl-10 w-full py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 placeholder-gray-400 transition-all duration-300"
+                  className="pl-9 pr-4 w-full py-2 bg-white/70 border border-gray-200 rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition-all duration-300 shadow-sm hover:shadow-md"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <select
-                className="py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 transition-all duration-300"
-                value={selectedWasteType}
-                onChange={(e) => setSelectedWasteType(e.target.value)}
-              >
-                <option value="all">All Waste Types</option>
-                <option value="organic">Organic</option>
-                <option value="plastic">Plastic</option>
-                <option value="paper">Paper</option>
-                <option value="metal">Metal</option>
-              </select>
-              <select
-                className="py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 transition-all duration-300"
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-              >
-                <option value="all">All Statuses</option>
-                <option value="empty">Empty</option>
-                <option value="half-full">Half Full</option>
-                <option value="full">Full</option>
-              </select>
+
+              {/* Waste Type Filter */}
+              <div className="relative group">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-green-600 transition-colors duration-300" size={18} />
+                <select
+                  className="pl-9 pr-4 w-full py-2 bg-white/70 border border-gray-200 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition-all duration-300 shadow-sm hover:shadow-md appearance-none"
+                  value={selectedWasteType}
+                  onChange={(e) => setSelectedWasteType(e.target.value)}
+                >
+                  <option value="all">All Waste Types</option>
+                  <option value="organic">Organic</option>
+                  <option value="plastic">Plastic</option>
+                  <option value="paper">Paper</option>
+                  <option value="metal">Metal</option>
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="relative group">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-green-600 transition-colors duration-300" size={18} />
+                <select
+                  className="pl-9 pr-4 w-full py-2 bg-white/70 border border-gray-200 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition-all duration-300 shadow-sm hover:shadow-md appearance-none"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="empty">Empty</option>
+                  <option value="half-full">Half Full</option>
+                  <option value="full">Full</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Stats Section */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
+              <CheckCircle2 className="text-green-600" size={32} />
+              <div>
+                <h3 className="text-sm text-gray-600">Empty Bins</h3>
+                <p className="text-3xl font-bold text-green-600">{statusCounts.empty}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
+              <AlertCircle className="text-yellow-600" size={32} />
+              <div>
+                <h3 className="text-sm text-gray-600">Half-Full Bins</h3>
+                <p className="text-3xl font-bold text-yellow-600">{statusCounts.halfFull}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
+              <AlertCircle className="text-red-600" size={32} />
+              <div>
+                <h3 className="text-sm text-gray-600">Full Bins</h3>
+                <p className="text-3xl font-bold text-red-600">{statusCounts.full}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="py-7 grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Interactive Map */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden">
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden z-10">
               <div className="h-[400px] lg:h-[600px] relative">
                 <MapContainer
                   center={[6.9170822, 79.862846]}
@@ -157,7 +207,7 @@ const BinLocations = () => {
             </div>
 
             {/* Bin List */}
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6">
+            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 z-10">
               <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <Trash2 className="text-green-600" size={24} />
                 Nearby Bins
@@ -188,30 +238,50 @@ const BinLocations = () => {
             </div>
           </div>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
-              <CheckCircle2 className="text-green-600" size={32} />
-              <div>
-                <h3 className="text-sm text-gray-600">Empty Bins</h3>
-                <p className="text-3xl font-bold text-green-600">{statusCounts.empty}</p>
+          {/* Picture Cards Section for Specific Locations */}
+          <div className="mt-12 z-10">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+              Waste Management in Key Locations
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Card 1: Malabe */}
+              <div className="relative bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <img
+                  src="https://img.freepik.com/free-photo/plastic-garbage-conveyor-belt-waste-recycling-factory_1268-23430.jpg?t=st=1743208019~exp=1743211619~hmac=371eea9a16346cd6a8cea052553c8964bd353fe63dd47328ce974efaefd0d913&w=1380"
+                  alt="Garbage Bins in Malabe"
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                  <h3 className="text-white text-lg font-semibold">Malabe</h3>
+                </div>
               </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
-              <AlertCircle className="text-yellow-600" size={32} />
-              <div>
-                <h3 className="text-sm text-gray-600">Half-Full Bins</h3>
-                <p className="text-3xl font-bold text-yellow-600">{statusCounts.halfFull}</p>
+
+              {/* Card 2: Kotte */}
+              <div className="relative bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <img
+                  src="https://img.freepik.com/free-photo/couple-collects-garbage-garbage-bags-park_1157-27404.jpg?t=st=1743208080~exp=1743211680~hmac=47145703b573a839ab7787ea31968780d68bf8ab372008fcb75dc69d761e2a73&w=1380"
+                  alt="Garbage Bins in Kotte"
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                  <h3 className="text-white text-lg font-semibold">Kotte</h3>
+                </div>
               </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
-              <AlertCircle className="text-red-600" size={32} />
-              <div>
-                <h3 className="text-sm text-gray-600">Full Bins</h3>
-                <p className="text-3xl font-bold text-red-600">{statusCounts.full}</p>
+
+              {/* Card 3: Rajagiriya */}
+              <div className="relative bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
+                <img
+                  src="https://img.freepik.com/free-photo/man-coveralls-trash-pill-doing-research_1157-49008.jpg?t=st=1743208115~exp=1743211715~hmac=3eb39360eff23a8e2426fe4e5ce16ad0f81270eed397b35673aba9ba9a61c3e5&w=1380"
+                  alt="Garbage Bins in Rajagiriya"
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                  <h3 className="text-white text-lg font-semibold">Rajagiriya</h3>
+                </div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
       <Footer />
