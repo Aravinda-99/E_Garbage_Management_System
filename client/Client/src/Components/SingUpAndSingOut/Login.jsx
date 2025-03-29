@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Leaf, Check } from 'lucide-react'; // Make sure to import Check from lucide-react
+import { Leaf, Check } from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -37,15 +37,27 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      if (formData.email === 'user@gmail.com' && formData.password === 'User@1234') {
+      // Check for admin credentials
+      if (formData.email === 'admin@gmail.com' && formData.password === 'Admin@1234') {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Login successful:', formData);
+        console.log('Admin login successful:', formData);
         setShowSuccessModal(true);
         setTimeout(() => {
           setShowSuccessModal(false);
-          navigate('/');
+          navigate('/AdminDashboard'); // Navigate to AdminDashboard
         }, 2000);
-      } else {
+      } 
+      // Check for regular user credentials
+      else if (formData.email === 'user@gmail.com' && formData.password === 'User@1234') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('User login successful:', formData);
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          navigate('/'); // Navigate to home for regular users
+        }, 2000);
+      } 
+      else {
         throw new Error('Invalid credentials');
       }
     } catch (error) {
@@ -55,6 +67,7 @@ const Login = () => {
     }
   };
 
+  // Rest of the component remains the same
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row relative">
@@ -185,7 +198,7 @@ const Login = () => {
           </form>
         </div>
 
-        {/* Updated Success Popup */}
+        {/* Success Popup */}
         {showSuccessModal && (
           <div className="absolute inset-0 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center z-10 animate-fade-in">
             <div className="flex flex-col items-center gap-3">
