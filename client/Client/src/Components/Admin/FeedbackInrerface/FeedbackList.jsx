@@ -1,36 +1,48 @@
 import React from 'react';
+import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
 
-function FeedbackList({ feedbacks }) {
+const FeedbackList = ({ feedbacks }) => {
+  const renderStars = (rating) => {
+    return Array(5).fill(0).map((_, i) => (
+      i < rating ? 
+        <FaStar key={i} className="text-yellow-400 inline-block text-sm" /> : 
+        <FaRegStar key={i} className="text-yellow-400 inline-block text-sm" />
+    ));
+  };
+
   return (
-    <div className="w-full max-w-2xl space-y-6">
+    <>
       {feedbacks.map((feedback) => (
         <div 
-          key={feedback.id} 
-          className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+          key={feedback.id}
+          className="w-full bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border-l-2 border-blue-400 p-5"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
-              {feedback.author}
-            </h3>
-            <div className="flex items-center">
-              <span className="text-yellow-400 text-xl">{'★'.repeat(feedback.rating)}</span>
-              <span className="text-gray-300">{'★'.repeat(5 - feedback.rating)}</span>
-            </div>
+          <div className="flex items-start mb-3">
+            <FaQuoteLeft className="text-blue-100 text-xl mr-2 mt-1 flex-shrink-0" />
+            <p className="text-gray-600 text-sm italic">"{feedback.message}"</p>
           </div>
-          
-          <p className="text-gray-600 mb-4">{feedback.message}</p>
-          
-          <div className="text-sm text-gray-500">
-            {new Date(feedback.createdAt).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
+          <div className="flex items-center justify-between mt-4">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-800">{feedback.author}</h3>
+              <div className="text-xs text-gray-500 mt-1">
+                {new Date(feedback.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </div>
+            </div>
+            <div className="flex items-center">
+              <span className="mr-1 text-gray-600 text-xs">{feedback.rating}.0</span>
+              <div className="flex">
+                {renderStars(feedback.rating)}
+              </div>
+            </div>
           </div>
         </div>
       ))}
-    </div>
+    </>
   );
-}
+};
 
 export default FeedbackList;
