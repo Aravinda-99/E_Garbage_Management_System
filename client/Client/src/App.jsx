@@ -16,7 +16,10 @@ import ScheduleManagementOverview from './Components/Admin/timeSchedule/timeOver
 
 import SignUp from './Components/SingUpAndSingOut/SignupForm.jsx'
 import Login from './Components/SingUpAndSingOut/Login.jsx'
-import FeedBackAndComp from './Components/Page/FeedbackAndComplains.jsx';
+import ChatBotPage from './Components/ChatBOTPage/ChatBotPage.jsx'
+import ChatBotPage2 from './Components/ChatBOTPage/ChatBotPage2.jsx'
+
+
 
 
 function App() {
@@ -43,6 +46,10 @@ function App() {
 
         <Route path="/SignUp" element={<SignUp />} />
         <Route path="/Login" element={<Login />} />
+        <Route path="/chat" element={<ChatBotPage />} />
+        <Route path="/chat2" element={<ChatBotPage2 />} />
+    
+
 
         <Route path="/feedback" element={<FeedBackAndComp />} />
         <Route path="/complain" element={<FeedBackAndComp />} />
