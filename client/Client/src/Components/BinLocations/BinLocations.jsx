@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { MapPin, Trash2, AlertCircle, CheckCircle2, Search, Filter } from 'lucide-react';
+import { MapPin, Trash2, AlertCircle, CheckCircle2, Search, Filter, ChevronRight, Info } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 
-// Fix for default marker icon in Leaflet (unchanged)
+// Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -24,24 +24,31 @@ const mockLocations = [
   { id: 8, latitude: 6.9155, longitude: 79.9285, address: "Rajagiriya", wasteType: "paper", status: "empty", lastUpdated: "2024-03-15 13:30" }
 ];
 
-// Updated utility functions with refined colors
 const getStatusColor = (status) => {
   switch (status) {
-    case 'empty': return 'bg-green-50 text-green-600 border-green-100';
-    case 'half-full': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
-    case 'full': return 'bg-red-50 text-red-600 border-red-100';
-    default: return 'bg-gray-50 text-gray-600 border-gray-100';
+    case 'empty': return 'bg-green-100 text-green-800';
+    case 'half-full': return 'bg-amber-100 text-amber-800';
+    case 'full': return 'bg-red-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
   }
 };
 
-// Waste type icons (unchanged)
+const getStatusIcon = (status) => {
+  switch (status) {
+    case 'empty': return <CheckCircle2 className="text-green-500" size={16} />;
+    case 'half-full': return <AlertCircle className="text-amber-500" size={16} />;
+    case 'full': return <AlertCircle className="text-red-500" size={16} />;
+    default: return <Info className="text-gray-500" size={16} />;
+  }
+};
+
 const getWasteTypeIcon = (type) => {
   switch (type) {
-    case 'organic': return 'https://img.icons8.com/color/48/000000/leaf.png';
-    case 'plastic': return 'https://img.icons8.com/color/48/000000/plastic.png';
-    case 'paper': return 'https://img.icons8.com/color/48/000000/paper.png';
-    case 'metal': return 'https://img.icons8.com/color/48/000000/metal.png';
-    default: return 'https://img.icons8.com/color/48/000000/trash.png';
+    case 'organic': return 'https://img.icons8.com/color/48/compost-bin.png';
+    case 'plastic': return 'https://img.icons8.com/color/48/plastic-bottle.png';
+    case 'paper': return 'https://img.icons8.com/color/48/paper-recycling.png';
+    case 'metal': return 'https://img.icons8.com/color/48/metal-recycling.png';
+    default: return 'https://img.icons8.com/color/48/trash-can.png';
   }
 };
 
@@ -74,239 +81,397 @@ const BinLocations = () => {
 
   return (
     <>
-      {/* Added z-index to ensure Navbar stays on top */}
       <Navbar className="z-50" />
-      <div className="py-30 min-h-screen bg-gradient-to-b from-green-50 to-white py-16 px-4 sm:px-6 lg:px-8 font-sans pt-20">
-        <div className="max-w-7xl mx-auto">
-          
-          {/* New Banner Section */}
-          <div className="text-center py-20 bg-emerald-900 z-10">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            Bin Locations
-            </h1>
-            <p className="text-lg text-emerald-200 max-w-2xl mx-auto">
-            Track and manage waste bins in real-time
-            </p>
+      
+      {/* Hero Section */}
+      <div className="relative h-96 overflow-hidden bg-emerald-900 flex items-center justify-center">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')] bg-cover bg-center opacity-30"></div>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 animate-fade-in">
+            Smart Bin Locations
+          </h1>
+          <p className="text-xl text-emerald-100 max-w-2xl mx-auto mb-6">
+            Real-time monitoring of waste collection points across the city
+          </p>
+          <div className="flex justify-center gap-4">
+            <button className="px-6 py-3 bg-white text-emerald-800 font-medium rounded-full hover:bg-emerald-100 transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl">
+              <MapPin size={18} /> View Map
+            </button>
+            <button className="px-6 py-3 bg-transparent border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
+              Learn More <ChevronRight size={18} />
+            </button>
           </div>
-
-          {/* Header */}
-          {/* <div className="mb-8 text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold text-green-700 tracking-tight">
-              Bin Locations
-            </h1>
-            <p className="mt-2 text-lg text-gray-600">Track and manage waste bins in real-time</p>
-          </div> */}
-
-          {/* Search and Filter Section */}
-          <div className="py- bg-white/30 backdrop-blur-lg rounded-2xl shadow-lg p-5 mb-8 border border-green-100/50 transition-all duration-300 hover:shadow-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Search Bar */}
-              <div className="relative group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-green-600 transition-colors duration-300" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search by location..."
-                  className="pl-9 pr-4 w-full py-2 bg-white/70 border border-gray-200 rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition-all duration-300 shadow-sm hover:shadow-md"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              {/* Waste Type Filter */}
-              <div className="relative group">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-green-600 transition-colors duration-300" size={18} />
-                <select
-                  className="pl-9 pr-4 w-full py-2 bg-white/70 border border-gray-200 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition-all duration-300 shadow-sm hover:shadow-md appearance-none"
-                  value={selectedWasteType}
-                  onChange={(e) => setSelectedWasteType(e.target.value)}
-                >
-                  <option value="all">All Waste Types</option>
-                  <option value="organic">Organic</option>
-                  <option value="plastic">Plastic</option>
-                  <option value="paper">Paper</option>
-                  <option value="metal">Metal</option>
-                </select>
-              </div>
-
-              {/* Status Filter */}
-              <div className="relative group">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-hover:text-green-600 transition-colors duration-300" size={18} />
-                <select
-                  className="pl-9 pr-4 w-full py-2 bg-white/70 border border-gray-200 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white transition-all duration-300 shadow-sm hover:shadow-md appearance-none"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="empty">Empty</option>
-                  <option value="half-full">Half Full</option>
-                  <option value="full">Full</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
-              <CheckCircle2 className="text-green-600" size={32} />
-              <div>
-                <h3 className="text-sm text-gray-600">Empty Bins</h3>
-                <p className="text-3xl font-bold text-green-600">{statusCounts.empty}</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
-              <AlertCircle className="text-yellow-600" size={32} />
-              <div>
-                <h3 className="text-sm text-gray-600">Half-Full Bins</h3>
-                <p className="text-3xl font-bold text-yellow-600">{statusCounts.halfFull}</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 flex items-center gap-4 hover:shadow-lg transition-all duration-300">
-              <AlertCircle className="text-red-600" size={32} />
-              <div>
-                <h3 className="text-sm text-gray-600">Full Bins</h3>
-                <p className="text-3xl font-bold text-red-600">{statusCounts.full}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="py-7 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Interactive Map */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden z-10">
-              <div className="h-[400px] lg:h-[600px] relative">
-                <MapContainer
-                  center={[6.9170822, 79.862846]}
-                  zoom={12}
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  {filteredLocations.map((location) => (
-                    <Marker
-                      key={location.id}
-                      position={[location.latitude, location.longitude]}
-                      eventHandlers={{ click: () => handleLocationClick(location) }}
-                    >
-                      <Popup>
-                        <div className="p-3 text-gray-800">
-                          <h3 className="font-semibold flex items-center gap-2">
-                            <img src={getWasteTypeIcon(location.wasteType)} alt={location.wasteType} className="w-5 h-5" />
-                            {location.address}
-                          </h3>
-                          <p className="text-sm mt-1">Type: <span className="font-medium">{location.wasteType}</span></p>
-                          <p className="text-sm">Status: <span className="font-medium">{location.status}</span></p>
-                          <p className="text-xs text-gray-500 mt-1">Last Updated: {location.lastUpdated}</p>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MapContainer>
-              </div>
-            </div>
-
-            {/* Bin List */}
-            <div className="bg-white rounded-2xl shadow-md border border-green-100 p-6 z-10">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Trash2 className="text-green-600" size={24} />
-                Nearby Bins
-                <span className="text-sm text-gray-500">({filteredLocations.length})</span>
-              </h2>
-              <div className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {filteredLocations.map((location) => (
-                  <div
-                    key={location.id}
-                    className="p-4 rounded-lg bg-gray-50 border border-gray-100 hover:border-green-200 hover:bg-green-50 cursor-pointer transition-all duration-300 shadow-sm hover:shadow-md"
-                    onClick={() => handleLocationClick(location)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <img src={getWasteTypeIcon(location.wasteType)} alt={location.wasteType} className="w-6 h-6" />
-                        <div>
-                          <h3 className="font-medium text-gray-800">{location.address}</h3>
-                          <p className="text-xs text-gray-500">Updated: {location.lastUpdated}</p>
-                        </div>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(location.status)}`}>
-                        {location.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Picture Cards Section for Specific Locations */}
-          <div className="mt-12 z-10">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-              Waste Management in Key Locations
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Card 1: Malabe */}
-              <div className="relative bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
-                <img
-                  src="https://img.freepik.com/free-photo/plastic-garbage-conveyor-belt-waste-recycling-factory_1268-23430.jpg?t=st=1743208019~exp=1743211619~hmac=371eea9a16346cd6a8cea052553c8964bd353fe63dd47328ce974efaefd0d913&w=1380"
-                  alt="Garbage Bins in Malabe"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <h3 className="text-white text-lg font-semibold">Malabe</h3>
-                </div>
-              </div>
-
-              {/* Card 2: Kotte */}
-              <div className="relative bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
-                <img
-                  src="https://img.freepik.com/free-photo/couple-collects-garbage-garbage-bags-park_1157-27404.jpg?t=st=1743208080~exp=1743211680~hmac=47145703b573a839ab7787ea31968780d68bf8ab372008fcb75dc69d761e2a73&w=1380"
-                  alt="Garbage Bins in Kotte"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <h3 className="text-white text-lg font-semibold">Kotte</h3>
-                </div>
-              </div>
-
-              {/* Card 3: Rajagiriya */}
-              <div className="relative bg-white rounded-2xl shadow-md border border-green-100 overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-lg">
-                <img
-                  src="https://img.freepik.com/free-photo/man-coveralls-trash-pill-doing-research_1157-49008.jpg?t=st=1743208115~exp=1743211715~hmac=3eb39360eff23a8e2426fe4e5ce16ad0f81270eed397b35673aba9ba9a61c3e5&w=1380"
-                  alt="Garbage Bins in Rajagiriya"
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                  <h3 className="text-white text-lg font-semibold">Rajagiriya</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
+
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans -mt-16">
+        <div className="max-w-7xl mx-auto relative">
+          
+          {/* Floating Search Card */}
+          <div className="relative z-20 -mt-20 mb-12 mx-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 backdrop-blur-sm bg-white/90 border border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="text-gray-400 group-hover:text-emerald-600" size={18} />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search by location..."
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white/70 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all duration-300"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+
+                {/* Waste Type Filter */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Filter className="text-gray-400" size={18} />
+                  </div>
+                  <select
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white/70 text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent appearance-none transition-all duration-300"
+                    value={selectedWasteType}
+                    onChange={(e) => setSelectedWasteType(e.target.value)}
+                  >
+                    <option value="all">All Waste Types</option>
+                    <option value="organic">Organic</option>
+                    <option value="plastic">Plastic</option>
+                    <option value="paper">Paper</option>
+                    <option value="metal">Metal</option>
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Filter className="text-gray-400" size={18} />
+                  </div>
+                  <select
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white/70 text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent appearance-none transition-all duration-300"
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="empty">Empty</option>
+                    <option value="half-full">Half Full</option>
+                    <option value="full">Full</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12 px-4">
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="p-6 flex items-start">
+                <div className="flex-shrink-0 bg-green-100 p-3 rounded-lg">
+                  <CheckCircle2 className="text-green-600" size={24} />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-600">Empty Bins</h3>
+                  <p className="text-3xl font-semibold text-gray-900">{statusCounts.empty}</p>
+                  <p className="mt-1 text-xs text-gray-500">Ready for collection</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="p-6 flex items-start">
+                <div className="flex-shrink-0 bg-amber-100 p-3 rounded-lg">
+                  <AlertCircle className="text-amber-600" size={24} />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-600">Half-Full Bins</h3>
+                  <p className="text-3xl font-semibold text-gray-900">{statusCounts.halfFull}</p>
+                  <p className="mt-1 text-xs text-gray-500">Monitor closely</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="p-6 flex items-start">
+                <div className="flex-shrink-0 bg-red-100 p-3 rounded-lg">
+                  <AlertCircle className="text-red-600" size={24} />
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-sm font-medium text-gray-600">Full Bins</h3>
+                  <p className="text-3xl font-semibold text-gray-900">{statusCounts.full}</p>
+                  <p className="mt-1 text-xs text-gray-500">Needs immediate attention</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
+            {/* Map Section */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+                <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                    <MapPin className="text-emerald-600 mr-2" size={20} />
+                    Interactive Waste Bin Map
+                  </h2>
+                  <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full">
+                    Real-time Data
+                  </span>
+                </div>
+                <div className="h-[500px] w-full relative">
+                  <MapContainer
+                    center={[6.9170822, 79.862846]}
+                    zoom={12}
+                    style={{ height: '100%', width: '100%' }}
+                    className="z-0"
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    {filteredLocations.map((location) => (
+                      <Marker
+                        key={location.id}
+                        position={[location.latitude, location.longitude]}
+                        eventHandlers={{ click: () => handleLocationClick(location) }}
+                      >
+                        <Popup className="rounded-lg shadow-lg border border-gray-200">
+                          <div className="p-3 max-w-xs">
+                            <div className="flex items-start">
+                              <img 
+                                src={getWasteTypeIcon(location.wasteType)} 
+                                alt={location.wasteType} 
+                                className="w-8 h-8 mr-3 mt-1" 
+                              />
+                              <div>
+                                <h3 className="font-semibold text-gray-800">{location.address}</h3>
+                                <div className="flex items-center mt-1">
+                                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(location.status)} flex items-center`}>
+                                    {getStatusIcon(location.status)}
+                                    <span className="ml-1 capitalize">{location.status}</span>
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">Last Updated: {location.lastUpdated}</p>
+                              </div>
+                            </div>
+                            <button 
+                              className="mt-3 w-full text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                              onClick={() => handleLocationClick(location)}
+                            >
+                              <MapPin size={14} className="mr-1" /> Open in Maps
+                            </button>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MapContainer>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 h-fit sticky top-4">
+  <div className="p-4 border-b border-gray-100 bg-gray-50">
+    <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+      <Trash2 className="text-emerald-600 mr-2" size={20} />
+      Nearby Waste Bins
+      <span className="ml-auto text-xs bg-gray-200 text-gray-800 px-2 py-1 rounded-full">
+        {filteredLocations.length} found
+      </span>
+    </h2>
+    <p className="mt-1 text-xs text-gray-500 flex items-center">
+      <Info className="mr-1" size={14} />
+      Click any bin to view on map
+    </p>
+  </div>
+  <div className="overflow-y-auto max-h-[600px] custom-scrollbar">
+    {filteredLocations.length > 0 ? (
+      <div className="divide-y divide-gray-100">
+        {filteredLocations.map((location) => (
+          <div
+            key={location.id}
+            className="p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+            onClick={() => handleLocationClick(location)}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">
+                  {location.address}
+                </h3>
+                <div className="mt-1 flex items-center text-xs text-gray-500">
+                  <span className="capitalize">{location.wasteType}</span>
+                  <span className="mx-2">•</span>
+                  <span>Updated: {location.lastUpdated}</span>
+                </div>
+              </div>
+              <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(location.status)} flex items-center`}>
+                {getStatusIcon(location.status)}
+                <span className="ml-1 capitalize">{location.status}</span>
+              </span>
+            </div>
+            <div className="mt-2 flex items-center">
+              <ChevronRight className="text-gray-400 ml-auto" size={16} />
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="p-8 text-center">
+        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+          <Search className="text-gray-400" size={20} />
+        </div>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">No bins found</h3>
+        <p className="mt-1 text-xs text-gray-500">
+          Try adjusting your search or filter criteria
+        </p>
+      </div>
+    )}
+  </div>
+</div>
+          </div>
+
+          {/* Waste Management Locations Section */}
+          <div className="mt-16 px-4">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold text-gray-900">Waste Management Hotspots</h2>
+              <p className="mt-2 text-gray-600 max-w-2xl mx-auto">
+                Key locations with advanced waste management infrastructure
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Malabe */}
+              <div className="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500">
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src="https://images.unsplash.com/photo-1587183233478-0acdba5b184a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Malabe Waste Management"
+                    className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-6">
+                  <h3 className="text-xl font-bold text-white">Malabe</h3>
+                  <p className="text-emerald-200 text-sm mt-1">Smart Bins: 12</p>
+                  <div className="mt-3 flex items-center text-white text-xs">
+                    <span className="bg-emerald-600/80 px-2 py-1 rounded-full">Eco-Friendly</span>
+                    <span className="bg-amber-600/80 px-2 py-1 rounded-full ml-2">High Traffic</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Kotte */}
+              <div className="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500">
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src="https://images.unsplash.com/photo-1600607688969-a5bfcd646154?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Kotte Waste Management"
+                    className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-6">
+                  <h3 className="text-xl font-bold text-white">Kotte</h3>
+                  <p className="text-emerald-200 text-sm mt-1">Smart Bins: 8</p>
+                  <div className="mt-3 flex items-center text-white text-xs">
+                    <span className="bg-blue-600/80 px-2 py-1 rounded-full">Recycling Hub</span>
+                    <span className="bg-purple-600/80 px-2 py-1 rounded-full ml-2">Solar Powered</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Rajagiriya */}
+              <div className="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500">
+                <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src="https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Rajagiriya Waste Management"
+                    className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-6">
+                  <h3 className="text-xl font-bold text-white">Rajagiriya</h3>
+                  <p className="text-emerald-200 text-sm mt-1">Smart Bins: 15</p>
+                  <div className="mt-3 flex items-center text-white text-xs">
+                    <span className="bg-red-600/80 px-2 py-1 rounded-full">High Priority</span>
+                    <span className="bg-indigo-600/80 px-2 py-1 rounded-full ml-2">IoT Enabled</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Colombo Fort */}
+              <div className="relative group overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-500">
+              <div className="aspect-w-16 aspect-h-9">
+                  <img
+                    src="https://media.istockphoto.com/id/956446200/photo/mosque-and-market-pettah-fort-colombo-sri-lanka.jpg?s=612x612&w=0&k=20&c=RPZocbCPpMNXnpWNXx3IzGhlBnv9ImkZj9G6U7RwNZ4="
+                    alt="Rajagiriya Waste Management"
+                    className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-6">
+                  <h3 className="text-xl font-bold text-white">Colombo Fort</h3>
+                  <p className="text-emerald-200 text-sm mt-1">Smart Bins: 22</p>
+                  <div className="mt-3 flex items-center text-white text-xs">
+                    <span className="bg-emerald-600/80 px-2 py-1 rounded-full">Central Hub</span>
+                    <span className="bg-amber-600/80 px-2 py-1 rounded-full ml-2">24/7 Monitoring</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="mt-20 bg-gradient-to-r bg-emerald-900 to-teal-600 rounded-2xl shadow-xl overflow-hidden mx-4">
+            <div className="px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-white sm:text-3xl">
+                  Want to install smart bins in your area?
+                </h2>
+                <p className="mt-4 text-emerald-100 max-w-2xl mx-auto">
+                  Join our smart city initiative and contribute to cleaner, more sustainable urban environments.
+                </p>
+                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                  <button className="px-6 py-3 bg-white text-emerald-700 font-medium rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    Request Installation
+                  </button>
+                  <button className="px-6 py-3 bg-transparent border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-all duration-300">
+                    Learn About Our Program
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <Footer />
+      
+      {/* Custom Scrollbar Styles */}
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(5, 150, 105, 0.5);
+          border-radius: 10px;
+          transition: background 0.3s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(5, 150, 105, 0.7);
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out forwards;
+        }
+      `}</style>
     </>
   );
 };
-
-// Updated scrollbar styles
-const styles = `
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px; /* Thinner scrollbar */
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: #e5e7eb; /* Subtle gray track */
-    border-radius: 6px; /* Slightly larger radius for a smoother look */
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #14b8a6; /* Teal thumb color */
-    border-radius: 6px; /* Match the track radius */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #0f766e; /* Darker teal on hover */
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow on hover */
-  }
-`;
 
 export default BinLocations;
