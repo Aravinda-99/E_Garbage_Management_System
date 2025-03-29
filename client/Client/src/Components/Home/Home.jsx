@@ -12,7 +12,7 @@ import MultipleProjects from '../Page/MultipleProjects.jsx';
 import FAQSection from '../Page/QuestionAsked.jsx';
 import FeedBackAndComp from '../Page/FeedbackAndComplains.jsx';
 import Card from '../Admin/FeedBackButton/Card.jsx';
-import FeedbackBanner from '../Admin/FeedbackInrerface/FeedbackBanner.jsx';
+import AIBot from '../AIBot/AIBot.jsx';
 
 
 function Home() {
@@ -22,6 +22,7 @@ function Home() {
       <div className="relative z-50">
         <Navbar />
       </div>
+      <AIBot/>
 
       {/* Main content wrapper */}
       <div className="relative z-10">
@@ -40,8 +41,8 @@ function Home() {
 
          
         {<div className="text-center py-20 bg-emerald-900">
-        <h1 className="text-6xl font-bold text-white mb-4 animate-fade-in">
-          Welcome to WasteWise
+        <h1 className="text-3xl font-bold text-white mb-4 animate-fade-in">
+        Reducing E-Waste, Building a Greener Tomorrow
         </h1>
         <p className="text-xl text-emerald-200 max-w-2xl mx-auto animate-fade-in-up">
           Revolutionizing waste management with sustainable solutions for a cleaner, greener future.

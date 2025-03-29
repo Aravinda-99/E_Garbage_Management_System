@@ -19,6 +19,8 @@ import Login from './Components/SingUpAndSingOut/Login.jsx'
 import ChatBotPage from './Components/ChatBOTPage/ChatBotPage.jsx'
 import ChatBotPage2 from './Components/ChatBOTPage/ChatBotPage2.jsx'
 import FeedBackAndComp from './Components/Page/FeedbackAndComplains.jsx';
+import AIBot from './Components/AIBot/AIBot.jsx';
+
 
 import FeedbackDisplay from './Components/Admin/FeedbackInrerface/FeedbackDisplay.jsx';
 
@@ -45,7 +47,7 @@ function App() {
         <Route path="/time" element={<TimeScheduling />} />
 
         <Route path="/ScheduleManagementOverview" element={<ScheduleManagementOverview />} />
-
+        <Route path="/Aibot" element={<AIBot />} />
 
         <Route path="/SignUp" element={<SignUp />} />
         <Route path="/Login" element={<Login />} />

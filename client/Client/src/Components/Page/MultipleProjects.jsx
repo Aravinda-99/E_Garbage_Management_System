@@ -1,37 +1,42 @@
 import React from 'react';
 import SingleProject from './SingleProject';
-import img1 from '../../image/img1.jpg'
-import img2 from '../../image/img2.jpg'
-import img3 from '../../image/img3.jpg'
-import img4 from '../../image/img4.jpg'
-import img5 from '../../image/img5.jpg'
+// import img1 from '../../image/img1.jpg'
+// import img2 from '../../image/img2.jpg'
+// import img3 from '../../image/img3.jpg'
+// import img4 from '../../image/img4.jpg'
+// import img5 from '../../image/img5.jpg'
+import img11 from '../../image/img11.jpg'
+import img12 from '../../image/img12.jpg'
+import img13 from '../../image/img13.jpg'
+import img14 from '../../image/img14.jpg'
+import img15 from '../../image/img15.jpg'
 
 const MultipleProjects = () => {
   const projectsData = [
     {
-      title: "Harvesting",
-      category: "Easy",
-      image: img1 // Using placeholder as we can't use external images
+      title: "Temple Festival",
+      category: "Anuradhapura",
+      image: img11 // Using placeholder as we can't use external images
     },
     {
-      title: "Farming",
-      category: "Agriculture",
-      image: img2
+      title: "Wedding Event",
+      category: "Malabe",
+      image: img12
     },
     {
-      title: "Farming",
-      category: "Ecological",
-      image: img3
+      title: "Sports Event",
+      category: "Kalaniya",
+      image: img13
     },
     {
-      title: "Solutions",
-      category: "Organic",
-      image: img4
+      title: "Concert Clean",
+      category: "Kandy",
+      image: img14
     },
     {
-        title: "Solutions",
-        category: "Organic",
-        image: img5
+        title: "Community Festival",
+        category: "Kurunagala",
+        image: img15
     }
   ];
 
