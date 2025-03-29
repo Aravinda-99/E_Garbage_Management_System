@@ -22,6 +22,8 @@ import FeedBackAndComp from './Components/Page/FeedbackAndComplains.jsx';
 import AIBot from './Components/AIBot/AIBot.jsx';
 
 
+import FeedbackDisplay from './Components/Admin/FeedbackInrerface/FeedbackDisplay.jsx';
+
 
 
 
@@ -56,6 +58,8 @@ function App() {
 
         <Route path="/feedback" element={<FeedBackAndComp />} />
         <Route path="/complain" element={<FeedBackAndComp />} />
+
+        <Route path="/viewFeed" element={<FeedbackDisplay />} />
 
 
       </Routes>

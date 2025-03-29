@@ -55,6 +55,7 @@ function Home() {
         <Process />
 
         <Card />
+        <FeedbackBanner />
         
         {/* Other sections */}
         <MultipleProjects />
