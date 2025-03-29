@@ -289,7 +289,7 @@ const BinLocations = () => {
   );
 };
 
-// Updated scrollbar styles aa
+// Updated scrollbar styles
 const styles = `
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px; /* Thinner scrollbar */
