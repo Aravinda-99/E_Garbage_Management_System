@@ -12,6 +12,7 @@ import MultipleProjects from '../Page/MultipleProjects.jsx';
 import FAQSection from '../Page/QuestionAsked.jsx';
 import FeedBackAndComp from '../Page/FeedbackAndComplains.jsx';
 import Card from '../Admin/FeedBackButton/Card.jsx';
+import FeedbackBanner from '../Admin/FeedbackInrerface/FeedbackBanner.jsx';
 
 
 function Home() {
@@ -53,6 +54,7 @@ function Home() {
         <Process />
 
         <Card />
+        <FeedbackBanner />
         
         {/* Other sections */}
         <MultipleProjects />

@@ -1,11 +1,9 @@
-// Card.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, AlertTriangle, MessageSquarePlus, ArrowRight } from 'lucide-react';
+import { AlertTriangle, MessageSquarePlus, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Card = () => {
-  const [isHovered, setIsHovered] = useState(false);
   const [activeButton, setActiveButton] = useState(null);
   const navigate = useNavigate();
 
@@ -15,153 +13,91 @@ const Card = () => {
       if (type === 'feedback') {
         navigate('/feedback');
       } else if (type === 'complaint') {
-        navigate('/complain'); // Changed from /FeedBackAndComp${type} to /complain
+        navigate('/complain');
       }
-    }, 800);
+    }, 500);
   };
 
-  // Floating leaf particles component
-  const FloatingLeaves = () => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-emerald-400/20"
-          initial={{
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            scale: Math.random() * 0.3 + 0.3,
-            opacity: 0,
-            rotate: Math.random() * 360
-          }}
-          animate={{
-            y: [0, -100],
-            x: [0, (Math.random() - 0.5) * 30],
-            opacity: [0, 0.3, 0],
-            rotate: Math.random() * 360
-          }}
-          transition={{
-            duration: Math.random() * 10 + 10,
-            repeat: Infinity,
-            delay: Math.random() * 5,
-            ease: "linear"
-          }}
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100 + 100}%`
-          }}
-        >
-          <Leaf className="w-4 h-4" />
-        </motion.div>
-      ))}
-    </div>
-  );
-
   return (
-    <div className="flex items-center justify-center min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="w-full max-w-4xl">
-        {/* Main Card */}
+    <div className="flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100 min-h-[200px]">
+      <div className="w-full max-w-3xl">
         <motion.div 
-          className="relative bg-white border border-gray-100 shadow-xl rounded-2xl overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
+          className="bg-white border border-gray-200 rounded-xl overflow-hidden relative
+                    shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_15px_40px_-15px_rgba(0,0,0,0.2)]
+                    transition-all duration-300 hover:-translate-y-1"
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          whileHover={{ scale: 1.005 }}
-          onHoverStart={() => setIsHovered(true)}
-          onHoverEnd={() => setIsHovered(false)}
+          transition={{ duration: 0.3 }}
         >
-          <FloatingLeaves />
-
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-xl pointer-events-none 
+                          shadow-[inset_0_0_20px_0_rgba(16,185,129,0.15)]"></div>
+          
           {/* Header Section */}
-          <motion.div 
-            className="relative h-60 overflow-hidden"
-            animate={{
-              scale: isHovered ? 1.02 : 1
-            }}
-            transition={{ duration: 0.8 }}
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1605152276897-4f618f831968?auto=format&fit=crop&q=80&w=2400"
-              alt="Sustainable Community"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-emerald-900/20 to-transparent" />
+          <div className="p-6 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white relative overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-white/10"></div>
+            <div className="absolute -left-5 -bottom-5 w-24 h-24 rounded-full bg-white/10"></div>
             
-            <div className="absolute bottom-6 left-6 text-white">
-              <motion.h2 
-                className="text-4xl font-bold tracking-tight"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                Add FeedBack or Complain
-              </motion.h2>
-              <motion.p 
-                className="text-lg opacity-90 mt-2 font-light max-w-lg"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                Join our mission to create a cleaner, more sustainable future
-              </motion.p>
-            </div>
-
-            <motion.div 
-              className="absolute top-6 right-6"
-              animate={{
-                y: [0, -5, 0],
-                rotate: [0, 5, 0]
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
+            <motion.h2 
+              className="text-2xl font-bold tracking-tight"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
-              <Leaf className="w-10 h-10 text-white/20" />
-            </motion.div>
-          </motion.div>
+              Add Feedback or Complaint
+            </motion.h2>
+            <motion.p 
+              className="text-sm opacity-90 mt-2 font-light"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              Join our mission to create a cleaner, more sustainable future
+            </motion.p>
+          </div>
 
           {/* Content Section */}
-          <div className="p-8">
-            <div className="flex items-center gap-4 mb-6">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
               <motion.div
-                animate={{ 
-                  rotate: 360,
-                  y: [0, -3, 0]
-                }}
-                transition={{ 
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="shrink-0"
               >
-                <Leaf className="w-8 h-8 text-emerald-600" />
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center
+                              shadow-[0_0_0_4px_rgba(16,185,129,0.2)]">
+                  <MessageSquarePlus className="w-5 h-5 text-emerald-600" />
+                </div>
               </motion.div>
-              <h3 className="text-2xl font-semibold text-gray-800">
+              <h3 className="text-xl font-semibold text-gray-800">
                 Your Voice Matters
               </h3>
             </div>
 
             <motion.p 
-              className="text-gray-600 text-base mb-8 leading-relaxed"
+              className="text-gray-600 text-sm mb-6 leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
             >
-              We're committed to building smarter waste solutions through community feedback. 
+              We're committed to building smarter solutions through community feedback. 
               Share your ideas or report issues to help us improve services in your area.
             </motion.p>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <motion.button
                 onClick={() => handleAction('feedback')}
-                className={`relative overflow-hidden h-14 rounded-lg flex items-center justify-between px-6
-                  ${activeButton === 'feedback' ? 'bg-emerald-700' : 'bg-emerald-600 hover:bg-emerald-700'} text-white font-medium`}
-                whileHover={activeButton ? {} : { scale: 1.02 }}
+                className={`relative overflow-hidden h-12 rounded-lg flex items-center justify-between px-4
+                  ${activeButton === 'feedback' ? 'bg-emerald-700' : 'bg-emerald-600 hover:bg-emerald-700'} 
+                  text-white font-medium group transition-all duration-200`}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={activeButton}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
               >
                 <AnimatePresence>
                   {activeButton === 'feedback' && (
@@ -170,24 +106,28 @@ const Card = () => {
                       initial={{ left: '100%' }}
                       animate={{ left: '0%' }}
                       exit={{ left: '0%' }}
-                      transition={{ duration: 0.8, ease: "circOut" }}
+                      transition={{ duration: 0.6, ease: "circOut" }}
                     />
                   )}
                 </AnimatePresence>
                 <div className="flex items-center gap-3 relative z-10">
-                  <MessageSquarePlus className="w-5 h-5" />
+                  <MessageSquarePlus className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span>Share Feedback</span>
                 </div>
-                <ArrowRight className="w-5 h-5 relative z-10" />
+                <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               </motion.button>
 
               <motion.button
                 onClick={() => handleAction('complaint')}
-                className={`relative overflow-hidden h-14 rounded-lg flex items-center justify-between px-6
-                  ${activeButton === 'complaint' ? 'bg-amber-700' : 'bg-amber-600 hover:bg-amber-700'} text-white font-medium`}
-                whileHover={activeButton ? {} : { scale: 1.02 }}
+                className={`relative overflow-hidden h-12 rounded-lg flex items-center justify-between px-4
+                  ${activeButton === 'complaint' ? 'bg-amber-700' : 'bg-amber-600 hover:bg-amber-700'} 
+                  text-white font-medium group transition-all duration-200`}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 disabled={activeButton}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
               >
                 <AnimatePresence>
                   {activeButton === 'complaint' && (
@@ -196,15 +136,15 @@ const Card = () => {
                       initial={{ left: '100%' }}
                       animate={{ left: '0%' }}
                       exit={{ left: '0%' }}
-                      transition={{ duration: 0.8, ease: "circOut" }}
+                      transition={{ duration: 0.6, ease: "circOut" }}
                     />
                   )}
                 </AnimatePresence>
                 <div className="flex items-center gap-3 relative z-10">
-                  <AlertTriangle className="w-5 h-5" />
+                  <AlertTriangle className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   <span>Report Issue</span>
                 </div>
-                <ArrowRight className="w-5 h-5 relative z-10" />
+                <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </div>
           </div>

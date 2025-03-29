@@ -20,6 +20,8 @@ import ChatBotPage from './Components/ChatBOTPage/ChatBotPage.jsx'
 import ChatBotPage2 from './Components/ChatBOTPage/ChatBotPage2.jsx'
 import FeedBackAndComp from './Components/Page/FeedbackAndComplains.jsx';
 
+import FeedbackDisplay from './Components/Admin/FeedbackInrerface/FeedbackDisplay.jsx';
+
 
 
 
@@ -54,6 +56,8 @@ function App() {
 
         <Route path="/feedback" element={<FeedBackAndComp />} />
         <Route path="/complain" element={<FeedBackAndComp />} />
+
+        <Route path="/viewFeed" element={<FeedbackDisplay />} />
 
 
       </Routes>
