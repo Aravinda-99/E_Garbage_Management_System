@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Leaf } from 'lucide-react'; // Import Leaf from lucide-react
+import { Link, useNavigate } from 'react-router-dom';
+import { Leaf, Check } from 'lucide-react'; // Make sure to import Check from lucide-react
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +10,8 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors = {};
@@ -35,8 +37,17 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Login successful:', formData);
+      if (formData.email === 'user@gmail.com' && formData.password === 'User@1234') {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Login successful:', formData);
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          navigate('/');
+        }, 2000);
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
       setErrors({ submit: 'Login failed. Please check your credentials.' });
     } finally {
@@ -46,7 +57,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row relative">
         {/* Image Side */}
         <div 
           className="w-full md:w-1/2 bg-cover bg-center hidden md:block"
@@ -64,10 +75,6 @@ const Login = () => {
                 size={28}
                 className="text-green-600 transition-transform duration-500 group-hover:rotate-90 group-hover:scale-110"
               />
-              {/* <span className="ml-2 text-2xl font-extrabold tracking-tight">
-                <span className="text-gray-900">Waste</span>
-                <span className="text-green-600">Wise</span>
-              </span> */}
             </Link>
             <h2 className="text-2xl font-bold text-gray-900 mt-4">Welcome Back</h2>
             <p className="text-gray-600 mt-1">Sign in to continue</p>
@@ -177,6 +184,18 @@ const Login = () => {
             </p>
           </form>
         </div>
+
+        {/* Updated Success Popup */}
+        {showSuccessModal && (
+          <div className="absolute inset-0 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center z-10 animate-fade-in">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <Check className="w-8 h-8 text-green-600" />
+              </div>
+              <p className="text-xl font-medium text-green-600">Login Successful!</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
