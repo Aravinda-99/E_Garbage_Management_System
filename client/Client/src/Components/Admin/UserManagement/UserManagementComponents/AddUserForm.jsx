@@ -57,7 +57,7 @@ const AddUserForm = ({ onAddUser, onCancel }) => {
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-gray-600 bg-opacity-30 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg transform transition-all duration-300 scale-100 hover:scale-[1.02]">
-        <h2 className="text-3xl font-bold mb-8 text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Add New User
         </h2>
         
