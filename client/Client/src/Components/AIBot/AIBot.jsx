@@ -48,37 +48,47 @@ const AIBot = () => {
     const randomType = wasteTypes[Math.floor(Math.random() * wasteTypes.length)];
     
     const recyclingInfo = {
-      'Plastic (Type 1 - PET)': {
-        recyclable: true,
-        value: '$0.05 - $0.10 per item',
-        instructions: 'Rinse, remove label if possible, and place in your recycling bin.',
-        impact: 'Recycling one plastic bottle saves enough energy to power a 60W light bulb for 6 hours.'
-      },
-      'Aluminum Can': {
-        recyclable: true,
-        value: '$0.05 - $0.10 per can',
-        instructions: 'Rinse and place in your recycling bin. Don\'t crush the can for easier sorting.',
-        impact: 'Recycling one aluminum can saves enough energy to run a TV for 3 hours.'
-      },
-      'Paper': {
-        recyclable: true,
-        value: '$0.01 per sheet or $0.50 per pound',
-        instructions: 'Stack together and place in paper recycling. Remove any plastic or metal attachments.',
-        impact: 'Recycling one ton of paper saves 17 trees and 7,000 gallons of water.'
-      },
-      'Glass Bottle': {
-        recyclable: true,
-        value: '$0.05 - $0.10 per bottle',
-        instructions: 'Rinse thoroughly and place in glass recycling. Remove caps and lids.',
-        impact: 'Glass can be recycled indefinitely without loss in quality or purity.'
-      },
-      'Food Waste': {
-        recyclable: true,
-        value: 'Can be composted for garden use or $0.25 per pound at some compost centers',
-        instructions: 'Add to compost bin or check local composting programs.',
-        impact: 'Composting food waste reduces methane emissions from landfills and creates nutrient-rich soil.'
-      }
-    };
+        'Plastic (Type 1 - PET)': {
+          recyclable: true,
+          instructions: 'Rinse thoroughly, remove caps and labels if possible, and place in your recycling bin. Check local guidelines as some municipalities only accept certain plastic types.',
+          impact: 'Recycling plastic reduces oil consumption (1 ton of recycled plastic saves 16.3 barrels of oil) and prevents plastic pollution in oceans.'
+        },
+        'Aluminum Can': {
+          recyclable: true,
+          instructions: 'Rinse cans to remove residue. Leave labels on as they burn off during recycling. Do not crush - many facilities use shape to sort aluminum.',
+          impact: 'Aluminum can be recycled indefinitely without quality loss. Recycling one can saves enough energy to power a TV for 3 hours.'
+        },
+        'Paper': {
+          recyclable: true,
+          instructions: 'Keep paper dry and clean. Remove any plastic windows from envelopes. Staples are okay - they get removed during processing.',
+          impact: 'Recycling one ton of paper saves 17 trees, 7,000 gallons of water, and reduces greenhouse gas emissions by 1 metric ton of CO2 equivalent.'
+        },
+        'Glass Bottle': {
+          recyclable: true,
+          instructions: 'Rinse thoroughly. Remove metal caps (recycle separately). Broken glass should be wrapped and disposed safely - most programs don\'t accept it.',
+          impact: 'Glass recycling reduces mining waste by 80% and air pollution by 20% compared to making new glass from raw materials.'
+        },
+        'Food Waste': {
+          recyclable: true,
+          instructions: 'Compost at home or use municipal programs. Remove any plastic packaging. Eggshells, coffee grounds, and most plant-based food can be composted.',
+          impact: 'Composting reduces methane emissions (a potent greenhouse gas) from landfills and creates nutrient-rich soil that sequesters carbon.'
+        },
+        'Electronics': {
+          recyclable: true,
+          instructions: 'Never throw in regular trash. Use certified e-waste recyclers. Remove batteries if possible. Wipe personal data from devices.',
+          impact: 'Proper e-waste recycling prevents heavy metal contamination and recovers valuable materials like gold, silver, and rare earth elements.'
+        },
+        'Batteries': {
+          recyclable: true,
+          instructions: 'Store used batteries in non-metal container. Tape terminals of lithium batteries. Many stores have drop-off bins. Never incinerate.',
+          impact: 'Battery recycling prevents soil and water contamination from heavy metals and recovers reusable materials.'
+        },
+        'Textiles': {
+          recyclable: true,
+          instructions: 'Donate wearable items. For damaged textiles, look for specialized textile recycling programs. Keep dry and clean.',
+          impact: 'Textile recycling reduces water consumption (it takes 2,700 liters of water to make one cotton t-shirt) and prevents landfill waste.'
+        }
+      };
     
     const info = recyclingInfo[randomType];
     
