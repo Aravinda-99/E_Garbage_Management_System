@@ -41,8 +41,8 @@ function Home() {
 
          
         {<div className="text-center py-20 bg-emerald-900">
-        <h1 className="text-6xl font-bold text-white mb-4 animate-fade-in">
-          Welcome to WasteWise
+        <h1 className="text-3xl font-bold text-white mb-4 animate-fade-in">
+        Reducing E-Waste, Building a Greener Tomorrow
         </h1>
         <p className="text-xl text-emerald-200 max-w-2xl mx-auto animate-fade-in-up">
           Revolutionizing waste management with sustainable solutions for a cleaner, greener future.
