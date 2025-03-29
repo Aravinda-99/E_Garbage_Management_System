@@ -11,6 +11,7 @@ import TestimonialSlider from '../commentsBaner.jsx';
 import MultipleProjects from '../Page/MultipleProjects.jsx';
 import FAQSection from '../Page/QuestionAsked.jsx';
 import FeedBackAndComp from '../Page/FeedbackAndComplains.jsx';
+import Card from '../Admin/FeedBackButton/Card.jsx';
 
 
 function Home() {
@@ -50,6 +51,8 @@ function Home() {
 
         {/* Process Section */}
         <Process />
+
+        <Card />
         
         {/* Other sections */}
         <MultipleProjects />
