@@ -117,13 +117,13 @@ const RequestTable = ({ onDelete, onSelectRequest }) => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => onSelectRequest(request)}
-                      className="text-indigo-600 hover:text-indigo-900 px-2 py-1 rounded hover:bg-indigo-50"
+                      className="bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700 transition-colors duration-150"
                     >
                       Update
                     </button>
                     <button
                       onClick={() => onDelete(request)}
-                      className="text-red-600 hover:text-red-900 px-2 py-1 rounded hover:bg-red-50"
+                      className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition-colors duration-150"
                     >
                       Delete
                     </button>
