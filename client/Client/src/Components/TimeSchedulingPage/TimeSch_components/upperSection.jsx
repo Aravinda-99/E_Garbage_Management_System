@@ -1,20 +1,30 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
-import { Button } from '../TimeSchedulingComponents/ui/button'; // Adjust path as needed
+import { Button } from '../TimeSchedulingComponents/ui/button';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "../TimeSchedulingComponents/ui/select"; // Adjust path as needed
-import { cn } from '../TimeSchedulingComponents/lib/utils'; // Adjust path as needed
+} from "../TimeSchedulingComponents/ui/select";
+import { cn } from '../TimeSchedulingComponents/lib/utils';
 
 const Uppersec = ({ filter, handleFilterChange, notificationsEnabled, setNotificationsEnabled }) => {
     return (
         <>
-            <section className="bg-gradient-to-r from-green-600 to-green-900 text-white py-16 elevate-farming-section">
-                <div className="max-w-7xl mx-auto px-6 text-center">
+            <section className="bg-gradient-to-r from-emerald-100 to-green-900 text-white py-20 relative elevate-farming-section">
+                {/* Background Image with Overlay */}
+                <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{
+                        backgroundImage: ` url('https://as1.ftcdn.net/v2/jpg/10/11/95/72/1000_F_1011957216_YyeQQbQRFsWn4pzgOKglsj7kTBXIjO5V.jpg')`, // Replace with your image URL
+                    }}
+                >
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/100 to-transparent opacity-80"></div> {/* Darker overlay */}
+                </div>
+
+                <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
                     {/* Fade in and slide up animation for heading */}
                     <h2 className="text-4xl font-bold mb-4 animate-[fadeInUp_0.8s_ease-out_forwards]">
                         Time Schedules
@@ -24,47 +34,8 @@ const Uppersec = ({ filter, handleFilterChange, notificationsEnabled, setNotific
                         Plan your waste collection effortlessly with our tailored schedules. Set your pickup time today and leave the rest to us.
                     </p>
                     {/* Flex container with Select and Notification Button */}
-                    <div className="flex gap-4 justify-center items-center">
-                        {/* Select component */}
-                        <div className="w-[180px] animate-[fadeInScale_0.6s_ease-out_0s_forwards]">
-                            <Select onValueChange={handleFilterChange} value={filter}>
-                                <SelectTrigger className="w-full bg-white text-green-900 px-4 py-2 rounded-full font-semibold">
-                                    <SelectValue placeholder="Filter" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem 
-                                        value="All" 
-                                        className="bg-gray-100 text-gray-900 hover:bg-gray-200"
-                                    >
-                                        All
-                                    </SelectItem>
-                                    <SelectItem 
-                                        value="General Waste" 
-                                        className="bg-gray-300 text-gray-900 hover:bg-gray-400"
-                                    >
-                                        General Waste
-                                    </SelectItem>
-                                    <SelectItem 
-                                        value="Recyclables" 
-                                        className="bg-green-200 text-green-900 hover:bg-green-300"
-                                    >
-                                        Recyclables
-                                    </SelectItem>
-                                    <SelectItem 
-                                        value="Electronic Waste" 
-                                        className="bg-yellow-200 text-yellow-900 hover:bg-yellow-300"
-                                    >
-                                        Electronic Waste
-                                    </SelectItem>
-                                    <SelectItem 
-                                        value="Green Waste" 
-                                        className="bg-lime-200 text-lime-900 hover:bg-lime-300"
-                                    >
-                                        Green Waste
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                    <div className="flex gap-4 justify-end items-center">
+
                         {/* Notification Button */}
                         <Button
                             variant="outline"
@@ -104,6 +75,17 @@ const Uppersec = ({ filter, handleFilterChange, notificationsEnabled, setNotific
                         opacity: 1;
                         transform: scale(1);
                     }
+                }
+
+                .elevate-farming-section::before {
+                    content: "";
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.3); /* Adjust the opacity here */
+                    pointer-events: none; /* Allows clicks to go through */
                 }
             `}</style>
         </>

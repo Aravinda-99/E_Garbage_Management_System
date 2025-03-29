@@ -6,6 +6,7 @@ import { Input } from '../TimeSchedulingComponents/ui/input';
 import { cn } from '../TimeSchedulingComponents/lib/utils';
 import Navbar from '../../Navbar.jsx';
 import Footer from '../../Footer.jsx';
+import Timeinfo from '../TimeSch_components/timeInfo.jsx';
 import Uppersec from '../TimeSch_components/upperSection.jsx';
 import {
     Select,
@@ -122,48 +123,101 @@ const Scheduling = () => {
         });
     }, [selectedDate, filterType, filterLocation]);
 
-    const handleToggleReminder = (date, collection) => {
+    const isReminderSet = useCallback((date, collection) => {
         const reminderId = `${date}-${collection.location}-${collection.type}`;
-        const existingReminder = reminders.find(r => r.id === reminderId);
-        
-        if (existingReminder) {
-            clearTimeout(activeTimeouts[reminderId]);
-            setReminders(prev => prev.filter(r => r.id !== reminderId));
-            setActiveTimeouts(prev => { const newTimeouts = { ...prev }; delete newTimeouts[reminderId]; return newTimeouts; });
-            toast.success(`Reminder cleared for ${collection.type} in ${collection.location}!`);
-        } else {
-            // Use the start time from the time range for the reminder
-            const startTime = collection.time.split(' - ')[0];
-            const reminderDateTime = new Date(`${date} ${startTime}`);
-            const now = new Date();
-            
-            if (reminderDateTime <= now) {
-                toast.error("Cannot set a reminder for a past time.", { icon: <AlertCircle /> });
-                return;
+        return reminders.some(r => r.id === reminderId);
+    }, [reminders]);
+
+    const handleToggleReminder = useCallback((date, collection) => {
+        const reminderId = `${date}-${collection.location}-${collection.type}`;
+        const existingReminderIndex = reminders.findIndex(r => r.id === reminderId);
+        const reminderExists = existingReminderIndex !== -1;
+
+        if (reminderExists) {
+            if (activeTimeouts[reminderId]) {
+                clearTimeout(activeTimeouts[reminderId]);
             }
             
-            setReminders(prev => [...prev, { 
+            const newReminders = reminders.filter(r => r.id !== reminderId);
+            const newTimeouts = { ...activeTimeouts };
+            delete newTimeouts[reminderId];
+            
+            setReminders(newReminders);
+            setActiveTimeouts(newTimeouts);
+            
+            toast.success(`Reminder cleared for ${collection.type} in ${collection.location}!`, {
+                position: 'top-right',
+                duration: 2000,
+            });
+        } else {
+            const startTime = collection.time.split(' - ')[0];
+            const [time, period] = startTime.split(' ');
+            const [hours, minutes] = time.split(':').map(Number);
+            let adjustedHours = hours;
+            if (period === 'PM' && hours !== 12) {
+                adjustedHours += 12;
+            } else if (period === 'AM' && hours === 12) {
+                adjustedHours = 0;
+            }
+
+            const reminderDateTime = new Date(date);
+            reminderDateTime.setHours(adjustedHours, minutes, 0, 0);
+
+            const now = new Date();
+
+            if (reminderDateTime <= now) {
+                toast.error("Cannot set a reminder for a past time.", {
+                    icon: <AlertCircle />,
+                    position: 'top-right',
+                    duration: 2000,
+                });
+                return;
+            }
+
+            const newReminder = {
                 ...collection,
                 date,
-                id: reminderId 
-            }]);
+                id: reminderId
+            };
             
-            toast.success(`Reminder set for ${collection.type} in ${collection.location}!`);
-            
+            setReminders(prevReminders => [...prevReminders, newReminder]);
+
+            toast.success(`Reminder set for ${collection.type} in ${collection.location} at ${startTime}!`, {
+                position: 'top-right',
+                duration: 2000,
+            });
+
             const timeUntilReminder = reminderDateTime.getTime() - now.getTime();
+
             const timeoutId = setTimeout(() => {
+                const message = `Reminder: ${collection.type} collection in ${collection.location} on ${date} between ${collection.time}!`;
                 if (notificationsEnabled) {
-                    alert(`Reminder: ${collection.type} collection in ${collection.location} on ${date} between ${collection.time}!`);
+                    if ("Notification" in window && Notification.permission === "granted") {
+                        new Notification(message);
+                    } else {
+                        alert(message);
+                    }
                 } else {
-                    toast(`Reminder: ${collection.type} collection in ${collection.location} on ${date} between ${collection.time}!`);
+                    toast.info(message, {
+                        position: 'top-right',
+                        duration: 3000,
+                    });
                 }
+                
                 setReminders(prev => prev.filter(r => r.id !== reminderId));
-                setActiveTimeouts(prev => { const newTimeouts = { ...prev }; delete newTimeouts[reminderId]; return newTimeouts; });
+                setActiveTimeouts(prev => {
+                    const newTimeouts = { ...prev };
+                    delete newTimeouts[reminderId];
+                    return newTimeouts;
+                });
             }, timeUntilReminder);
-            
-            setActiveTimeouts(prev => ({ ...prev, [reminderId]: timeoutId }));
+
+            setActiveTimeouts(prevTimeouts => ({
+                ...prevTimeouts,
+                [reminderId]: timeoutId
+            }));
         }
-    };
+    }, [reminders, activeTimeouts, notificationsEnabled]);
 
     useEffect(() => {
         const timer = setTimeout(() => setLoading(false), 500);
@@ -171,12 +225,7 @@ const Scheduling = () => {
             clearTimeout(timer);
             Object.values(activeTimeouts).forEach(timeout => clearTimeout(timeout));
         };
-    }, []);
-
-    const isReminderSet = (date, collection) => {
-        const reminderId = `${date}-${collection.location}-${collection.type}`;
-        return reminders.some(r => r.id === reminderId);
-    };
+    }, [activeTimeouts]);
 
     const getDayName = (dateString) => {
         const date = new Date(dateString);
@@ -186,16 +235,20 @@ const Scheduling = () => {
     return (
         <div className="flex flex-col min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}>
             {/* Fixed Navbar */}
+            
             <div className="fixed top-0 left-0 right-0 z-50">
                 <Navbar />
             </div>
 
-            <div className="flex-1 pt-16">
-                <Uppersec 
-                    notificationsEnabled={notificationsEnabled} 
-                    setNotificationsEnabled={setNotificationsEnabled} 
-                />
+            {/* Added space between Navbar and Uppersec */}
+            <div className="pt-21"> 
+              <Uppersec
+                  notificationsEnabled={notificationsEnabled}
+                  setNotificationsEnabled={setNotificationsEnabled}
+              />
+            </div>
 
+            <div className="flex-1">
                 <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}
@@ -205,8 +258,9 @@ const Scheduling = () => {
                     >
                         <div className="flex flex-col space-y-4 mb-4 bg-green-100/50 p-3 rounded-lg">
                             <h2 className="text-xl font-semibold text-gray-900">Daily Collection Routes</h2>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Waste Types Filter */}
                                 <div className="flex items-center space-x-2">
                                     <Filter className="w-5 h-5 text-gray-600" />
                                     <Select
@@ -216,16 +270,21 @@ const Scheduling = () => {
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Filter by waste type" />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="bg-[#2b6a36c1] text-white">
                                             {allWasteTypes.map(type => (
-                                                <SelectItem key={type} value={type}>
+                                                <SelectItem
+                                                    key={type}
+                                                    value={type}
+                                                    className="text-white hover:bg-[#2A5A50] focus:bg-[#2A5A50]"
+                                                >
                                                     {type}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                
+
+                                {/* Location Filter */}
                                 <div className="flex items-center space-x-2">
                                     <MapPin className="w-5 h-5 text-gray-600" />
                                     <Select
@@ -235,16 +294,21 @@ const Scheduling = () => {
                                         <SelectTrigger className="w-full">
                                             <SelectValue placeholder="Filter by location" />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="bg-[#2b6a36a0] text-white">
                                             {allLocations.map(location => (
-                                                <SelectItem key={location} value={location}>
+                                                <SelectItem
+                                                    key={location}
+                                                    value={location}
+                                                    className="text-white hover:bg-[#2b6a36c1] focus:bg-[#2A5A50]"
+                                                >
                                                     {location}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                
+
+                                {/* Date Navigation */}
                                 <div className="flex items-center space-x-4">
                                     <Button
                                         variant="ghost"
@@ -281,7 +345,7 @@ const Scheduling = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         {dateError && <p className="text-red-500 text-sm mt-2">{dateError}</p>}
                         <div className="flex items-center justify-between">
                             <div className="text-sm text-gray-600">
@@ -378,7 +442,7 @@ const Scheduling = () => {
                                         <Truck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                                         <h3 className="text-lg font-medium text-gray-700">No collections scheduled</h3>
                                         <p className="text-gray-500 mt-2">
-                                            {filterType !== 'All' || filterLocation !== 'All' 
+                                            {filterType !== 'All' || filterLocation !== 'All'
                                                 ? "No collections match your filters. Try adjusting your filters."
                                                 : "No waste collections are scheduled for this day."}
                                         </p>
@@ -389,6 +453,7 @@ const Scheduling = () => {
                     </div>
                 </main>
             </div>
+            <Timeinfo/>
             <Footer />
         </div>
     );
