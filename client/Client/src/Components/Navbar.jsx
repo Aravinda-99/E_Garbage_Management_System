@@ -20,9 +20,9 @@ const Navbar = () => {
     const timer = setTimeout(() => setIsVisible(true), 100);
     const pathname = location.pathname;
     if (pathname === '/') setActiveLink('Home');
-    else if (pathname === '/request') setActiveLink('Request');
+    else if (pathname === '/RequestPage') setActiveLink('Request');
     else if (pathname === '/bin-locations') setActiveLink('Bin Locations');
-    else if (pathname === '/schedule') setActiveLink('Schedule');
+    else if (pathname === '/time') setActiveLink('Schedule');
 
     window.addEventListener('scroll', handleScroll);
     return () => {
@@ -47,9 +47,9 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Request', path: '/request' },
+    { name: 'Request', path: '/RequestPage' },
     { name: 'Bin Locations', path: '/bin-locations' },
-    { name: 'Schedule', path: '/schedule' },
+    { name: 'Schedule', path: '/time' },
   ];
 
   return (
@@ -141,7 +141,7 @@ const Navbar = () => {
               {showDropdown && (
                 <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl p-2 border border-green-100 z-50">
                   <Link
-                    to="/profile"
+                    to="/UserProfileView"
                     className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
                     onClick={() => setShowDropdown(false)}
                   >
