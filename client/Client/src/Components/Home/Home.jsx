@@ -27,32 +27,39 @@ function Home() {
         <div className="relative">
           <HeroContentLeft />
         </div>
-        
-        {/* Other sections */}
-        <MultipleProjects />
-        <SystemBenefits />
 
-        {/* <div className="text-center py-20 bg-emerald-900">
+         {/* Gallery Section */}
+         <Gallery />
+
+         <SystemBenefits />
+
+         {/* Stats Section */}
+         <Stats />
+
+         
+        {<div className="text-center py-20 bg-emerald-900">
         <h1 className="text-6xl font-bold text-white mb-4 animate-fade-in">
           Welcome to WasteWise
         </h1>
         <p className="text-xl text-emerald-200 max-w-2xl mx-auto animate-fade-in-up">
           Revolutionizing waste management with sustainable solutions for a cleaner, greener future.
         </p>
-      </div> */}
+      </div> }
         
-        {/* Stats Section */}
-         <Stats />
+        
 
         {/* Process Section */}
         <Process />
+        
+        {/* Other sections */}
+        <MultipleProjects />
+        
 
-        {/* Gallery Section */}
-        <Gallery />
 
-        <FAQSection />
-        <TestimonialSlider />
-        <FeedBackAndComp />
+    
+        {/* <FAQSection /> */}
+        {/* <TestimonialSlider /> */}
+        {/* <FeedBackAndComp /> */}
         <Footer />
 
         

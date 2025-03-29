@@ -64,13 +64,6 @@ export const Gallery = () => {
       icon: <Pizza className="w-5 h-5" />
     },
     {
-      title: "Hazardous Waste",
-      category: "Special Care",
-      description: "Safe disposal of batteries, chemicals, and hazardous materials",
-      image: "https://images.unsplash.com/photo-1635241161466-541f065683ba?auto=format&fit=crop&q=80",
-      icon: <Battery className="w-5 h-5" />
-    },
-    {
       title: "Green Waste",
       category: "Garden",
       description: "Processing yard waste into mulch and compost",
@@ -85,17 +78,10 @@ export const Gallery = () => {
       icon: <Factory className="w-5 h-5" />
     },
     {
-      title: "Household Waste",
-      category: "Residential",
-      description: "Regular collection and sorting of household waste",
-      image: "https://images.unsplash.com/photo-1597166532199-d0a71c32c0ae?auto=format&fit=crop&q=80",
-      icon: <Trash2 className="w-5 h-5" />
-    },
-    {
       title: "Packaging Waste",
       category: "Commercial",
       description: "Recycling cardboard, paper, and packaging materials",
-      image: "https://images.unsplash.com/photo-1597425922972-8914c61f0289?auto=format&fit=crop&q=80",
+      image: "https://img.freepik.com/free-photo/used-plastic-bottles-recycling-bins-earth-day-campaign_53876-104848.jpg?t=st=1743192774~exp=1743196374~hmac=f34039814d5cf85f7c9554dbdfdaf797e672ef1c2ed9fef31fbe1cb7a1adae51&w=1380",
       icon: <ShoppingBag className="w-5 h-5" />
     }
   ];
@@ -121,7 +107,8 @@ export const Gallery = () => {
           </motion.div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Adjusted grid to 3 columns and centered */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {items.map((item, index) => (
             <GalleryItem key={index} {...item} />
           ))}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { Leaf, User, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -11,27 +11,18 @@ const Navbar = () => {
   const location = useLocation();
   const dropdownRef = useRef(null);
 
-  // Handle scroll effect and entrance animation
+  // Handle scroll and entrance animation
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
 
-    // Set initial visibility after a short delay for entrance animation
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, 100);
-
-    // Set active link based on current path
+    const timer = setTimeout(() => setIsVisible(true), 100);
     const pathname = location.pathname;
     if (pathname === '/') setActiveLink('Home');
-    else if (pathname === '/RequestPage') setActiveLink('Request');
-    else if (pathname === '/BinLocation') setActiveLink('BinLocation');
-    else if (pathname === '/Time') setActiveLink('Time');
+    else if (pathname === '/request') setActiveLink('Request');
+    else if (pathname === '/bin-locations') setActiveLink('Bin Locations');
+    else if (pathname === '/schedule') setActiveLink('Schedule');
 
     window.addEventListener('scroll', handleScroll);
     return () => {
@@ -40,147 +31,132 @@ const Navbar = () => {
     };
   }, [location]);
 
-  // Handle clicks outside the dropdown to close it
+  // Handle dropdown close on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleMobileMenu = () => setMobileMenuOpen(!isMobileMenuOpen);
+  const toggleDropdown = () => setShowDropdown(!showDropdown);
 
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-  };
-
-  // Navigation links with their corresponding routes
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Request', path: '/RequestPage' },
-    { name: 'BinLocation', path: '/BinLocation' },
-    { name: 'Time', path: '/Time' }
+    { name: 'Request', path: '/request' },
+    { name: 'Bin Locations', path: '/bin-locations' },
+    { name: 'Schedule', path: '/schedule' },
   ];
 
   return (
     <>
-      {/* Inject style to fix white line */}
       <style jsx global>{`
-        body, html {
-          margin: 0;
-          padding: 0;
-          overflow-x: hidden;
-          width: 100%;
+        @keyframes gradientFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .gradient-flow {
+          background: linear-gradient(270deg, #10B981, #34D399, #6EE7B7);
+          background-size: 200% 200%;
+          animation: gradientFlow 8s ease infinite;
         }
       `}</style>
-      
-      <header 
-        className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-500 ${
-          isScrolled ? 'bg-white shadow-lg py-1' : 'bg-white/90 py-2'
-        } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
+
+      <header
+        className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-700 ease-out ${
+          isScrolled ? 'bg-white shadow-2xl py-2' : 'bg-gradient-to-b from-white to-transparent py-4'
+        } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-6'}`}
       >
-        <div className="w-full px-6 flex justify-between items-center h-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          {/* Logo */}
           <Link to="/" className="flex items-center group">
-            {/* Logo SVG */}
-            <div className="mr-2 text-blue-600 transition-transform duration-500 transform group-hover:rotate-12">
-              <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 2L26 14L14 26L2 14L14 2Z" fill="currentColor" fillOpacity="0.2" />
-                <path d="M14 7L21 14L14 21L7 14L14 7Z" fill="currentColor" />
-              </svg>
-            </div>
-            
-            {/* Text with shimmer effect */}
-            <span className="text-xl font-bold relative">
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Ego
-              </span>
-              <span className="absolute inset-0 w-full bg-gradient-to-r from-transparent via-white/30 to-transparent bg-clip-text text-transparent animate-shimmer"></span>
+            <Leaf
+              size={28}
+              className="text-green-600 transition-transform duration-500 group-hover:rotate-90 group-hover:scale-110"
+            />
+            <span className="ml-2 text-2xl font-extrabold tracking-tight">
+              <span className="text-gray-900">Waste</span>
+              <span className="text-green-600">Wise</span>
             </span>
           </Link>
-          
+
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden lg:flex items-center space-x-10">
             {navLinks.map((link, index) => (
-              <Link 
+              <Link
                 key={link.name}
                 to={link.path}
-                className={`relative px-2 py-1 text-gray-700 hover:text-blue-600 transition-all duration-300 overflow-hidden
-                  ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                style={{ transitionDelay: `${index * 100 + 200}ms` }}
+                className={`relative text-gray-700 hover:text-green-600 font-medium transition-all duration-300 group
+                  ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+                style={{ transitionDelay: `${index * 150}ms` }}
                 onClick={() => setActiveLink(link.name)}
               >
                 {link.name}
-                <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 transition-all duration-300 transform
-                  ${activeLink === link.name ? 'scale-x-100' : 'scale-x-0'}`}></span>
-                <span className="absolute inset-0 w-full h-full bg-blue-100 rounded-lg opacity-0 hover:opacity-10 transition-opacity duration-300"></span>
+                <span
+                  className={`absolute -bottom-1 left-0 w-full h-0.5 transition-all duration-300 origin-center
+                    ${activeLink === link.name ? 'bg-green-600 scale-x-100' : 'bg-green-400 scale-x-0 group-hover:scale-x-100'}`}
+                />
               </Link>
             ))}
           </nav>
-          
-          <div className="flex items-center space-x-4">
-            <Link 
+
+          {/* User Actions */}
+          <div className="flex items-center space-x-6">
+            <Link
               to="/login"
-              className={`text-gray-700 hover:text-blue-600 transition-all duration-300 text-sm
-                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              className={`text-gray-600 hover:text-green-600 font-medium transition-all duration-300
+                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+              style={{ transitionDelay: '500ms' }}
+            >
+              Log In
+            </Link>
+            <Link
+              to="/signup"
+              className={`relative px-4 py-2 rounded-full text-white font-medium overflow-hidden transition-all duration-500
+                gradient-flow shadow-lg hover:shadow-xl transform hover:scale-105
+                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
               style={{ transitionDelay: '600ms' }}
             >
-              Log in
+              Sign Up
             </Link>
-            
-            <Link 
-              to="/signup"
-              className={`bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-all duration-300 
-                shadow-md hover:shadow-lg relative overflow-hidden text-sm
-                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+
+            {/* User Dropdown */}
+            <div
+              ref={dropdownRef}
+              className={`relative ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
               style={{ transitionDelay: '700ms' }}
             >
-              <span className="relative z-10">Sign up</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-700 to-indigo-700 transform scale-x-0 origin-left transition-transform duration-500 hover:scale-x-100"></span>
-            </Link>
-            
-            {/* Fixed Dropdown that doesn't auto-hide */}
-            <div 
-              ref={dropdownRef}
-              className={`relative ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-              style={{ transitionDelay: '800ms' }}
-            >
               <button
-                onClick={toggleDropdown} 
-                className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300 transform hover:scale-110"
+                onClick={toggleDropdown}
+                className="p-2 rounded-full bg-green-100 hover:bg-green-200 transition-all duration-300 transform hover:rotate-12"
                 aria-expanded={showDropdown}
-                aria-haspopup="true"
               >
-                <User size={18} className="text-gray-700" />
+                <User size={20} className="text-green-600" />
               </button>
-              
-              {/* Dropdown menu that stays visible */}
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-xl py-2 z-50 border border-gray-200">
-                  <Link 
-                    to="/UserProfileView" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-2xl p-2 border border-green-100 z-50">
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
                     onClick={() => setShowDropdown(false)}
                   >
                     Profile
                   </Link>
-                  <Link 
-                    to="/settings" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                  <Link
+                    to="/settings"
+                    className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
                     onClick={() => setShowDropdown(false)}
                   >
                     Settings
                   </Link>
-                  <Link 
-                    to="/logout" 
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+                  <Link
+                    to="/logout"
+                    className="block px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-all duration-200"
                     onClick={() => setShowDropdown(false)}
                   >
                     Logout
@@ -188,38 +164,32 @@ const Navbar = () => {
                 </div>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 rounded-md text-gray-700 hover:bg-green-100 transition-all duration-300"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
-          
-          {/* Mobile Menu Button */}
-          <button
-            className={`md:hidden p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-opacity duration-300
-              ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-            onClick={toggleMobileMenu}
-            aria-label="Menu"
-            style={{ transitionDelay: '900ms' }}
-          >
-            {isMobileMenuOpen ? (
-              <X size={20} className="text-gray-800" />
-            ) : (
-              <Menu size={20} className="text-gray-800" />
-            )}
-          </button>
         </div>
 
         {/* Mobile Menu */}
-        <div 
-          className={`md:hidden overflow-hidden transition-all duration-500 ease-in-out
-            ${isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}
+        <div
+          className={`lg:hidden transition-all duration-500 ease-in-out overflow-hidden ${
+            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
         >
-          <div className="px-6 pt-2 pb-4 space-y-3 bg-white/95 shadow-inner">
+          <div className="px-4 py-6 bg-white shadow-lg">
             {navLinks.map((link, index) => (
-              <Link 
+              <Link
                 key={link.name}
                 to={link.path}
-                className={`block py-2 px-2 transition-all duration-300 rounded-md transform
-                  ${activeLink === link.name ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'}
-                  ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'}`}
-                style={{ transitionDelay: isMobileMenuOpen ? `${index * 100}ms` : '0ms' }}  
+                className={`block py-3 px-4 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg font-medium transition-all duration-300
+                  ${activeLink === link.name ? 'bg-green-50 text-green-600' : ''}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
                 onClick={() => {
                   setActiveLink(link.name);
                   setMobileMenuOpen(false);
@@ -228,15 +198,20 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <div className={`pt-2 mt-2 border-t border-gray-100 transition-all duration-300 transform
-              ${isMobileMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-4 opacity-0'}`}
-              style={{ transitionDelay: isMobileMenuOpen ? '400ms' : '0ms' }}
+            <Link
+              to="/login"
+              className="block py-3 px-4 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg font-medium transition-all duration-300"
+              onClick={() => setMobileMenuOpen(false)}
             >
-              <Link to="/UserProfileView" className="flex items-center py-2 px-2 text-gray-700 hover:bg-gray-50 rounded-md group">
-                <User size={16} className="mr-2 transition-transform duration-300 group-hover:scale-110" />
-                <span>Profile</span>
-              </Link>
-            </div>
+              Log In
+            </Link>
+            <Link
+              to="/signup"
+              className="block py-3 px-4 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg font-medium transition-all duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Sign Up
+            </Link>
           </div>
         </div>
       </header>

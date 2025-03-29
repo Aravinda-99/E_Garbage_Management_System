@@ -1,37 +1,38 @@
 import React, { useState, useEffect } from "react";
 
 export function HeroContentLeft() {
-  // Array of background images - all three images should cycle
+  // Array of background images - all images will cycle
   const backgroundImages = [
     "https://cdn.leonardo.ai/users/ed5d9018-351e-4397-8c32-f86a841e5d45/generations/fe5dd044-77fd-4ac0-a10f-7f109a40a593/segments/4:4:1/Flux_Dev_A_wellmaintained_city_park_with_lush_green_grass_neat_3.jpeg?w=512",
-    
+
     "https://cdn.qwenlm.ai/output/402cc42c-ec8c-4052-b84f-653059787189/t2i/f3333c99-f243-4949-9755-1c5b4b632481/f23bd31c-637f-40f4-8cf0-5d469c741f98.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDAyY2M0MmMtZWM4Yy00MDUyLWI4NGYtNjUzMDU5Nzg3MTg5IiwicmVzb3VyY2VfaWQiOiJmMjNiZDMxYy02MzdmLTQwZjQtOGNmMC01ZDQ2OWM3NDFmOTgiLCJyZXNvdXJjZV9jaGF0X2lkIjpudWxsfQ.tpmF5l_pOXAXqjpG9oSPqPfRMXy5veBe0uyOWos9R1E",
-    
-    "https://cdn.qwenlm.ai/output/402cc42c-ec8c-4052-b84f-653059787189/t2i/0f217cfe-7710-409d-81e8-ae5c8a7b6278/6aa229d5-1ded-4db3-a667-04b6a7300c05.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDAyY2M0MmMtZWM4Yy00MDUyLWI4NGYtNjUzMDU5Nzg3MTg5IiwicmVzb3VyY2VfaWQiOiI2YWEyMjlkNS0xZGVkLTRkYjMtYTY2Ny0wNGI2YTczMDBjMDUiLCJyZXNvdXJjZV9jaGF0X2lkIjpudWxsfQ.jj8ceD6PLzgNM8FIGkItvf8O-Le4p2y8PwvETaiX2-0"
-];
+
+    "https://cdn.qwenlm.ai/output/402cc42c-ec8c-4052-b84f-653059787189/t2i/0f217cfe-7710-409d-81e8-ae5c8a7b6278/6aa229d5-1ded-4db3-a667-04b6a7300c05.png?key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV91c2VyX2lkIjoiNDAyY2M0MmMtZWM4Yy00MDUyLWI4NGYtNjUzMDU5Nzg3MTg5IiwicmVzb3VyY2VfaWQiOiI2YWEyMjlkNS0xZGVkLTRkYjMtYTY2Ny0wNGI2YTczMDBjMDUiLCJyZXNvdXJjZV9jaGF0X2lkIjpudWxsfQ.jj8ceD6PLzgNM8FIGkItvf8O-Le4p2y8PwvETaiX2-0",
+
+    // Added three more images related to waste management and clean environments
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=80", // Image of a clean city environment
+    "https://images.unsplash.com/photo-1503596476-1c12a8ba09a9?auto=format&fit=crop&w=1920&q=80", // Image of recycling bins
+    "https://images.unsplash.com/photo-1592995709171-2d5b1a0d1b1e?auto=format&fit=crop&w=1920&q=80"  // Image of a waste management truck
+  ];
 
   // State to track current image index
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Functions to navigate images
   const goToPrevious = () => {
-    setCurrentImageIndex((prevIndex) => 
+    setCurrentImageIndex((prevIndex) =>
       prevIndex === 0 ? backgroundImages.length - 1 : prevIndex - 1
     );
   };
 
   const goToNext = () => {
-    setCurrentImageIndex((prevIndex) => 
+    setCurrentImageIndex((prevIndex) =>
       (prevIndex + 1) % backgroundImages.length
     );
   };
 
   // Effect to change image every 5 seconds
-  // Modified to include currentImageIndex as a dependency to ensure the effect updates properly
   useEffect(() => {
-    // Log the current index for debugging
-    console.log("Current image index:", currentImageIndex);
-    
     const intervalId = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % backgroundImages.length);
     }, 5000); // Change image every 5 seconds
@@ -41,7 +42,7 @@ export function HeroContentLeft() {
   }, []); // Empty dependency array ensures this only runs once on mount
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative h-[50vh] md:h-[60vh] lg:h-[70vh] w-full overflow-hidden">
       {/* Background Images with fade transition */}
       {backgroundImages.map((imageUrl, index) => (
         <div
@@ -61,7 +62,7 @@ export function HeroContentLeft() {
       {/* Navigation Arrows */}
       <div className="absolute inset-x-0 top-1/2 flex justify-between items-center px-4 z-20">
         {/* Previous Arrow */}
-        <button 
+        <button
           onClick={goToPrevious}
           className="bg-black bg-opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-white transition-all duration-200"
           aria-label="Previous image"
@@ -70,9 +71,9 @@ export function HeroContentLeft() {
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        
+
         {/* Next Arrow */}
-        <button 
+        <button
           onClick={goToNext}
           className="bg-black bg-opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-white transition-all duration-200"
           aria-label="Next image"
@@ -89,30 +90,29 @@ export function HeroContentLeft() {
           <button
             key={index}
             onClick={() => setCurrentImageIndex(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none ${
-              index === currentImageIndex ? "bg-white scale-110" : "bg-white bg-opacity-60 hover:bg-opacity-80"
-            }`}
+            className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none ${index === currentImageIndex ? "bg-white scale-110" : "bg-white bg-opacity-60 hover:bg-opacity-80"
+              }`}
             aria-label={`Go to image ${index + 1}`}
           />
         ))}
       </div>
 
-      {/* Content with enhanced text clarity */}
-      <div className="relative h-full flex flex-col justify-end items-start p-8 md:p-16 lg:p-24 z-10">
-        {/* Title with text shadow for better clarity */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 drop-shadow-lg text-shadow">
-          A fully featured React components library
+      {/* Content Centered Vertically and Horizontally */}
+      <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-4 z-10">
+        {/* Title with Responsive Text Size */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 drop-shadow-lg text-shadow text-center max-w-4xl px-4">
+          A Smart and Efficient Garbage Management System
         </h1>
 
-        {/* Description with enhanced visibility */}
-        <p className="text-lg md:text-xl lg:text-2xl text-white max-w-2xl mb-8 drop-shadow-md text-shadow-sm">
-          Build fully functional accessible web applications faster than ever – Mantine includes
-          more than 120 customizable components and hooks to cover you in any situation
+        {/* Description with Improved Readability */}
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white max-w-3xl mb-6 drop-shadow-md text-shadow-sm text-center px-4">
+          Optimize waste collection and disposal with our advanced management system. Track, schedule,
+          and monitor waste management operations in real-time to ensure a cleaner and greener environment.
         </p>
 
-        {/* Button with improved gradient and accessibility */}
-        <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg">
-          Get started
+        {/* Button with Responsive Size and Centered */}
+        <button className="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-full text-base sm:text-lg font-semibold hover:from-green-600 hover:to-teal-700 transition-all duration-300 shadow-lg">
+          Get Started
         </button>
       </div>
     </div>
@@ -129,3 +129,5 @@ const styles = `
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
 `;
+
+export default HeroContentLeft;

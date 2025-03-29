@@ -7,6 +7,7 @@ import RequestTable from '../RequestPage/requestPageComponent/RequestTable.jsx';
 import UpdateRequestForm from '../RequestPage/requestPageComponent/UpdateRequestForm.jsx';
 import Navbar from '../Navbar.jsx';
 import Footer from '../Footer.jsx';
+import FeedbackInPTable from './ProfilePageComponent/FeedbackInPTable.jsx';
 
 const API_BASE_URL = "http://localhost:8045/api/v1/request";
 
@@ -38,7 +39,6 @@ const UserProfileView = () => {
 
   // Handle request deletion
   const handleDeleteRequest = async (request) => {
-    // Confirm deletion
     const confirmDelete = window.confirm('Are you sure you want to delete this request?');
     if (!confirmDelete) return;
 
@@ -49,7 +49,6 @@ const UserProfileView = () => {
         }
       });
       
-      // Remove request from local state
       setRequests(prevRequests => 
         prevRequests.filter(req => req.requestId !== request.requestId)
       );
@@ -73,14 +72,15 @@ const UserProfileView = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* <Navbar /> */}
+      <Navbar />
       <ToastContainer />
       
       <div className="flex-grow bg-gray-50">
         <UserProfile />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-8">
-          <div className="bg-white shadow rounded-lg overflow-hidden">
+          {/* Cleaning Requests Section */}
+          <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
             <div className="px-6 py-5 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-800">My Cleaning Requests</h2>
             </div>
@@ -99,6 +99,17 @@ const UserProfileView = () => {
               </div>
             )}
           </div>
+
+          {/* Feedback Section */}
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800">My Feedback</h2>
+            </div>
+            
+            <div className="p-6">
+              <FeedbackInPTable />
+            </div>
+          </div>
         </div>
 
         {/* Update Request Modal */}
@@ -110,7 +121,7 @@ const UserProfileView = () => {
                   onClick={handleCloseUpdateForm}
                   className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 z-60 text-2xl"
                 >
-                  &times;
+                  ×
                 </button>
                 <UpdateRequestForm 
                   requestId={selectedRequest.requestId} 
@@ -122,7 +133,6 @@ const UserProfileView = () => {
           </div>
         )}
       </div>
-
       <Footer />
     </div>
   );
