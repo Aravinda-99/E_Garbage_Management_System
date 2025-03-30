@@ -22,6 +22,11 @@ function FeedBackAndComp() {
     return () => setIsMounted(false);
   }, []);
 
+  // Validation function to allow only letters
+  const allowOnlyLetters = (value) => {
+    return value.replace(/[^a-zA-Z\s]/g, '');
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -167,9 +172,11 @@ function FeedBackAndComp() {
                       <input
                         type="text"
                         value={feedbackName}
-                        onChange={(e) => setFeedbackName(e.target.value)}
+                        onChange={(e) => setFeedbackName(allowOnlyLetters(e.target.value))}
                         className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/50 border border-green-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-200 transition-all duration-300 placeholder:text-gray-400"
                         placeholder="Enter your name"
+                        pattern="[A-Za-z\s]+"
+                        title="Only letters are allowed"
                         required
                       />
                     </motion.div>
@@ -222,10 +229,12 @@ function FeedBackAndComp() {
                       </label>
                       <textarea
                         value={feedbackComment}
-                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        onChange={(e) => setFeedbackComment(allowOnlyLetters(e.target.value))}
                         className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/50 border border-green-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-200 transition-all duration-300 placeholder:text-gray-400"
                         rows={4}
                         placeholder="Tell us about your experience..."
+                        pattern="[A-Za-z\s]+"
+                        title="Only letters are allowed"
                         required
                       />
                     </motion.div>
@@ -272,9 +281,11 @@ function FeedBackAndComp() {
                       <input
                         type="text"
                         value={complaintName}
-                        onChange={(e) => setComplaintName(e.target.value)}
+                        onChange={(e) => setComplaintName(allowOnlyLetters(e.target.value))}
                         className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/50 border border-green-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-200 transition-all duration-300 placeholder:text-gray-400"
                         placeholder="Enter your name"
+                        pattern="[A-Za-z\s]+"
+                        title="Only letters are allowed"
                         required
                       />
                     </motion.div>
@@ -289,10 +300,12 @@ function FeedBackAndComp() {
                       </label>
                       <textarea
                         value={complaintText}
-                        onChange={(e) => setComplaintText(e.target.value)}
+                        onChange={(e) => setComplaintText(allowOnlyLetters(e.target.value))}
                         className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white/50 border border-green-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent hover:border-green-200 transition-all duration-300 placeholder:text-gray-400"
                         rows={4}
                         placeholder="Describe the issue you encountered..."
+                        pattern="[A-Za-z\s]+"
+                        title="Only letters are allowed"
                         required
                       />
                     </motion.div>
