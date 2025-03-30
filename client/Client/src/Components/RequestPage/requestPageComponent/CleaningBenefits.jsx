@@ -180,10 +180,10 @@ const CleaningBenefits = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium text-lg text-gray-900">Custom Service Plans</h3>
+                <h3 className="font-medium text-lg text-gray-900">On-Demand Waste Removal</h3>
                 <p className="mt-1 text-gray-600 text-sm">
-                  Flexible service options tailored to your specific needs, whether you're a homeowner, property
-                  manager, or business owner.
+                Need a quick cleanup? Our on-demand waste removal service ensures fast and efficient 
+                pickup whenever you need it, without waiting for scheduled collections.
                 </p>
               </div>
             </motion.div>
@@ -208,9 +208,9 @@ const CleaningBenefits = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="font-medium text-lg text-gray-900">Eco-Friendly Practices</h3>
+                <h3 className="font-medium text-lg text-gray-900">Bulk Waste Disposal</h3>
                 <p className="mt-1 text-gray-600 text-sm">
-                  Sustainable waste management solutions that prioritize recycling and reducing environmental impact.
+                Efficient and hassle-free removal of large waste items, including furniture, appliances, and bulk debris, with responsible disposal practices.
                 </p>
               </div>
             </motion.div>

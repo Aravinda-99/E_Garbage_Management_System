@@ -2,12 +2,12 @@ import React, { useEffect, useState, useRef } from 'react';
 
 // Sample data for destinations
 const destinations = [
-  { name: 'Finland', description: 'Land of a thousand lakes and northern lights.', image: 'https://img.freepik.com/free-photo/group-happy-african-volunteers-with-garbage-bags-cleaning-area-park-africa-volunteering-charity-people-ecology-concept_627829-351.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
-  { name: 'Istanbul', description: 'Where East meets West in vibrant culture.', image: 'https://img.freepik.com/free-photo/african-girl-europan-boy-wearing-masks-gloves-theay-have-cleaned-park-from-trash-carry-bag-together_1157-49272.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
-  { name: 'Prag', description: 'A fairy-tale city with historic charm.', image: 'https://img.freepik.com/free-photo/beautiful-volunteer-woman-posing-city-park_1262-20973.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
-  { name: 'Ankara', description: 'Turkeys capital with rich history.', image: 'https://img.freepik.com/premium-photo/happy-family-collecting-rubbish_13339-106292.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
-  { name: 'Ethence', description: 'A serene escape with ancient roots.', image: 'https://img.freepik.com/free-photo/man-collecting-scattered-plastic-bottles-from-ground_1268-20057.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
-  { name: 'London', description: 'Iconic landmarks and timeless elegance.', image: 'https://img.freepik.com/free-photo/man-collecting-plastic-garbage-polluted-park_1268-20119.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
+  { name: 'Anuradhapura', description: 'Land of a thousand lakes and northern lights.', image: 'https://img.freepik.com/free-photo/group-happy-african-volunteers-with-garbage-bags-cleaning-area-park-africa-volunteering-charity-people-ecology-concept_627829-351.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
+  { name: 'Kaluthara', description: 'Where East meets West in vibrant culture.', image: 'https://img.freepik.com/free-photo/african-girl-europan-boy-wearing-masks-gloves-theay-have-cleaned-park-from-trash-carry-bag-together_1157-49272.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
+  { name: 'Kurunagala', description: 'A fairy-tale city with historic charm.', image: 'https://img.freepik.com/free-photo/beautiful-volunteer-woman-posing-city-park_1262-20973.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
+  { name: 'Akurana', description: 'Turkeys capital with rich history.', image: 'https://img.freepik.com/premium-photo/happy-family-collecting-rubbish_13339-106292.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
+  { name: 'Gampaha', description: 'A serene escape with ancient roots.', image: 'https://img.freepik.com/free-photo/man-collecting-scattered-plastic-bottles-from-ground_1268-20057.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
+  { name: 'Kaduwela', description: 'Iconic landmarks and timeless elegance.', image: 'https://img.freepik.com/free-photo/man-collecting-plastic-garbage-polluted-park_1268-20119.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid' },
 ];
 
 const RecentProject = () => {
