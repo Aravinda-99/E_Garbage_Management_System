@@ -74,12 +74,12 @@ const ComplaintTable = ({ onDelete, onEdit }) => {
                   >
                     Edit
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => onDelete && onDelete(complaint)}
                     className="bg-red-500 hover:bg-red-600 text-white text-xs font-medium py-1 px-3 rounded shadow-sm transition-colors duration-150"
                   >
                     Delete
-                  </button>
+                  </button> */}
                 </div>
               </td>
             </tr>
