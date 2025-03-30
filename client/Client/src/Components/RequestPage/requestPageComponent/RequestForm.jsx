@@ -234,7 +234,7 @@ const RequestForm = ({ initialData = {} }) => {
               <div className="flex items-center absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <Mail className="w-4 h-4 mr-1" />
               </div>
-              <input
+              {/* <input
                 type="email"
                 name="email"
                 value={formData.email}
@@ -243,7 +243,29 @@ const RequestForm = ({ initialData = {} }) => {
                 placeholder="Email Address"
                 pattern="^[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                 title="Please enter a valid email (letters, numbers, and ._%+-@ only)"
+              /> */}
+
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={(e) => {
+                  // Allow letters, numbers, and common email characters like @, ., -, _, +
+                  let filteredValue = e.target.value.replace(/[^a-zA-Z0-9@._-]/g, '');
+                  // Prevent starting with a number or special character
+                  if (/^[0-9@._-]/.test(filteredValue)) {
+                    filteredValue = filteredValue.replace(/^[0-9@._-]+/, '');
+                  }
+                  handleChange({ target: { name: 'email', value: filteredValue } });
+                }}
+                className={`w-full pl-9 pr-3 py-2.5 outline-none border ${errors.email ? 'border-red-400' : 'border-gray-300'
+                  } rounded-lg transition-all duration-300`}
+                placeholder="Email Address"
+                pattern="^[a-zA-Z][a-zA-Z0-9._%+-]*@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                title="Please enter a valid email (must start with a letter, followed by letters, numbers, and ._%+-@ only)"
+                required
               />
+
             </label>
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
