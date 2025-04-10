@@ -21,7 +21,7 @@ import javax.persistence.*;
 public class FeedBack {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long feedbackID;
+    private Integer feedbackID;
 
     @Column(name = "username", nullable = false)
     private String username;
