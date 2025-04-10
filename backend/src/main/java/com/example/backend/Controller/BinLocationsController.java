@@ -1,16 +1,19 @@
 package com.example.backend.Controller;
 
 import com.example.backend.DTO.BinLocationsDTO;
+import com.example.backend.DTO.RequestServiceDTO;
+import com.example.backend.DTO.updateController.RequestStatusUpdateDTO;
+import com.example.backend.DTO.updateController.RequestUpdateUserDTO;
 import com.example.backend.Service.BinLocationsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-//Controller ekk kiyl define krne me word eken and frontend ekt return krn data json fromat ekt convert krl send krnw
-@RequestMapping("api/v1/BinLocations")
-@CrossOrigin //Security Perpose walata use krnne
+import java.util.List;
 
+@RestController
+@RequestMapping("api/v1/BinLocations")
+@CrossOrigin
 public class BinLocationsController {
 
     @Autowired
@@ -18,11 +21,32 @@ public class BinLocationsController {
 
     @PostMapping(path = "/saved")
     public String save(@RequestBody BinLocationsDTO binsDTO) {
-
-        String message = binLocationsService.saveBins(binsDTO);
-
-        return message;
-
+        return binLocationsService.saveBins(binsDTO);
     }
+
+    @GetMapping(path = "/get-all-BinLocations")
+    public List<BinLocationsDTO> getAllBins() {
+
+        List<BinLocationsDTO> allBins = binLocationsService.getAllBins();
+        return allBins;
+    }
+
+    @DeleteMapping(path = "delete-BinLocations/{id}")
+    public String deleteBins(@PathVariable(value = "id") Integer binId) {
+        String deleted = binLocationsService.deleteBins(binId);
+        return deleted;
+    }
+
+
+    @PutMapping("/update/{binId}")
+    public ResponseEntity<BinLocationsDTO> updateBin(
+            @PathVariable Integer binId,
+            @RequestBody BinLocationsDTO updateDTO
+    ) {
+        updateDTO.setLocationId(binId); // ✅ Correct field: set the location ID
+        BinLocationsDTO updatedBinLocations = binLocationsService.updateBinLocations(updateDTO);
+        return ResponseEntity.ok(updatedBinLocations);
+    }
+
 
 }
