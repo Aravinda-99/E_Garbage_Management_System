@@ -1,12 +1,16 @@
 package com.example.backend.Service;
 
 import com.example.backend.DTO.BinLocationsDTO;
-import com.example.backend.entity.BinLocations;
-import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 public interface BinLocationsService {
 
+     List<BinLocationsDTO> getAllBins();  // ✅ removed static
 
-     public String saveBins(BinLocationsDTO binsDTO);
+     String saveBins(BinLocationsDTO binsDTO);
 
+     String deleteBins(Integer binId);
+
+     BinLocationsDTO updateBinLocations(BinLocationsDTO updateDTO);
 }
