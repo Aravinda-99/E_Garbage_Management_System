@@ -8,4 +8,6 @@ public interface ScheduleService {
     String saveSchedule(ScheduleDTO scheduleDTO);
 
     List<ScheduleDTO> getAllSchedules();
+
+    String deleteSchedule(Long scheduleId);
 }

@@ -27,5 +27,11 @@ public class Sheduleontroller {
         return allSchedules;
     }
 
+    @DeleteMapping(path = "/delete-schedule/{id}")
+    public String deleteSchedule(@PathVariable(value = "id") Long scheduleId) {
+        String deleted = scheduleService.deleteSchedule(scheduleId);
+        return deleted;
+    }
+
 
 }
