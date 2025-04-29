@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { MessageSquare, Search, Bell, ChevronDown } from 'lucide-react';
+import { MessageSquare, Search, Bell, ChevronDown, Download, FileText } from 'lucide-react';
 import AdminRequestTable from './RMcomponent/AdminRequestTable';
 import StatusChangeTable from './RMcomponent/StatusChangeTable';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const RequestManagementOverview = () => {
   const [requests, setRequests] = useState([]);
@@ -11,6 +13,7 @@ const RequestManagementOverview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [pdfGenerating, setPdfGenerating] = useState(false);
   const API_BASE_URL = "http://localhost:8045/api/v1/request";
 
   const fetchRequests = async () => {
@@ -78,6 +81,141 @@ const RequestManagementOverview = () => {
     return acc;
   }, {});
 
+  // Fixed generatePDF function that properly displays all fields
+// Fixed generatePDF function that properly displays all fields
+const generatePDF = () => {
+  setPdfGenerating(true);
+  
+  try {
+    // Create a new jsPDF instance
+    const doc = new jsPDF('landscape');
+    
+    // Set title
+    doc.setFontSize(22);
+    doc.setTextColor(33, 37, 41);
+    doc.text('Cleaning Services - Request Management Report', 14, 22);
+    
+    // Add date
+    doc.setFontSize(12);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    
+    // Add company info
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Clean Services Inc.', doc.internal.pageSize.width - 80, 20);
+    doc.text('123 Cleaning Way, Suite 100', doc.internal.pageSize.width - 80, 25);
+    doc.text('contact@cleanservices.com', doc.internal.pageSize.width - 80, 30);
+    
+    // Add status summary
+    doc.setFontSize(16);
+    doc.setTextColor(33, 37, 41);
+    doc.text('Request Status Summary:', 14, 40);
+    
+    const statusTableData = Object.entries(statusCounts).map(([status, count]) => [
+      status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' '),
+      count.toString()
+    ]);
+    
+    // Create status summary table
+    autoTable(doc, {
+      startY: 45,
+      head: [['Status', 'Count']],
+      body: statusTableData,
+      theme: 'striped',
+      headStyles: { fillColor: [66, 139, 202], textColor: [255, 255, 255] },
+      bodyStyles: { fillColor: [245, 250, 254] },
+      alternateRowStyles: { fillColor: [235, 245, 253] }
+    });
+    
+    // Add request details section
+    doc.setFontSize(16);
+    doc.setTextColor(33, 37, 41);
+    doc.text('Request Details:', 14, doc.lastAutoTable.finalY + 15);
+    
+    // Create request details table with properly extracted data
+    const requestTableData = requests.map(req => {
+      // Format date and time using the correct properties (eventDate and eventTime)
+      let formattedDateTime = 'N/A';
+      if (req.eventDate) {
+        formattedDateTime = req.eventDate;
+        if (req.eventTime) {
+          formattedDateTime += `\n${req.eventTime}`;
+        }
+      } else {
+        // Fallback: Try to format using createdDate or date
+        try {
+          const dateValue = req.createdDate || req.date;
+          if (dateValue) {
+            const date = new Date(dateValue);
+            if (!isNaN(date.getTime())) {
+              // Format as YYYY-MM-DD HH:MM:SS
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const hours = String(date.getHours()).padStart(2, '0');
+              const minutes = String(date.getMinutes()).padStart(2, '0');
+              
+              formattedDateTime = `${year}-${month}-${day}\n${hours}:${minutes}`;
+            }
+          }
+        } catch (err) {
+          console.error('Date parsing error:', err);
+          formattedDateTime = 'Invalid Format';
+        }
+      }
+      
+      // Extract requester name using the exact field name from AdminRequestTable
+      const requesterName = req.requesterName || // Correct field from AdminRequestTable
+                           req.requester || 
+                           (req.name ? req.name : 
+                           (req.email ? req.email.split('@')[0] : 'N/A'));
+      
+      // Get cleaners count using the numberOfCleaners field as shown in AdminRequestTable
+      const cleanersCount = req.numberOfCleaners?.toString() || 
+                           req.cleaners?.toString() || '0';
+      
+      return [
+        requesterName,
+        req.email || 'N/A',
+        req.eventType || 'N/A',
+        req.location || 'N/A',
+        formattedDateTime,
+        req.status || 'N/A',
+        cleanersCount  // Use the correct field for cleaners count
+      ];
+    });
+    
+    autoTable(doc, {
+      startY: doc.lastAutoTable.finalY + 20,
+      head: [['Requester', 'Email', 'Event Type', 'Location', 'Date & Time', 'Status', 'Cleaners']],
+      body: requestTableData,
+      theme: 'grid',
+      headStyles: { fillColor: [66, 139, 202], textColor: [255, 255, 255] },
+      styles: { overflow: 'ellipsize', cellPadding: 4 },
+      columnStyles: {
+        0: { cellWidth: 30 },  // Requester
+        1: { cellWidth: 50 },  // Email
+        2: { cellWidth: 35 },  // Event Type
+        3: { cellWidth: 30 },  // Location
+        4: { cellWidth: 35 },  // Date & Time
+        5: { cellWidth: 30 },  // Status
+        6: { cellWidth: 20 }   // Cleaners
+      }
+    });
+    
+    // Save the PDF
+    doc.save('cleaning-services-request-report.pdf');
+    
+    // Notify success
+    alert('PDF report generated successfully!');
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    alert('Failed to generate PDF report');
+  } finally {
+    setPdfGenerating(false);
+  }
+};
+
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   if (error) return <div className="p-4 text-center text-red-500">Error: {error}</div>;
 
@@ -112,6 +250,18 @@ const RequestManagementOverview = () => {
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
             >
+              <motion.button
+                className="flex items-center space-x-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={generatePDF}
+                disabled={pdfGenerating || requests.length === 0}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  {pdfGenerating ? 'Generating...' : 'Generate Report'}
+                </span>
+              </motion.button>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <motion.input
@@ -189,7 +339,21 @@ const RequestManagementOverview = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <h2 className="text-xl font-semibold">All Requests</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">All Requests</h2>
+            <motion.button
+              className="flex items-center space-x-2 px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={generatePDF}
+              disabled={pdfGenerating || requests.length === 0}
+            >
+              <Download className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {pdfGenerating ? 'Processing...' : 'Download PDF'}
+              </span>
+            </motion.button>
+          </div>
           <AdminRequestTable 
             requests={requests.filter(request => 
               searchQuery ? 
