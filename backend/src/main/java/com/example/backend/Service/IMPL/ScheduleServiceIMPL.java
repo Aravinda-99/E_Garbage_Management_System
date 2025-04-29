@@ -53,5 +53,20 @@ public class ScheduleServiceIMPL implements ScheduleService {
         }
     }
 
+    @Override
+    public ScheduleDTO updateSchedule(ScheduleDTO scheduleDTO) {
+        // Check if schedule exists
+        if (!scheduleRepo.existsById(scheduleDTO.getId())) {
+            throw new RuntimeException("Schedule with ID " + scheduleDTO.getId() + " not found");
+        }
+
+        // Save the updated schedule
+        Schedule schedule = modelMapper.map(scheduleDTO, Schedule.class);
+        Schedule savedSchedule = scheduleRepo.save(schedule);
+
+        // Return the updated schedule as DTO
+        return modelMapper.map(savedSchedule, ScheduleDTO.class);
+    }
+
 
 }

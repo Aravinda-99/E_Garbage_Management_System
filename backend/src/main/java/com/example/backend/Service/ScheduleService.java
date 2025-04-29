@@ -10,4 +10,6 @@ public interface ScheduleService {
     List<ScheduleDTO> getAllSchedules();
 
     String deleteSchedule(Long scheduleId);
+
+    ScheduleDTO updateSchedule(ScheduleDTO updateDTO);
 }
