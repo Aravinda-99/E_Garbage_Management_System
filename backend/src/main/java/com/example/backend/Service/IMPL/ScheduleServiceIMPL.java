@@ -42,4 +42,16 @@ public class ScheduleServiceIMPL implements ScheduleService {
         }.getType());
         return scheduleDTOS;
     }
+
+    @Override
+    public String deleteSchedule(Long scheduleId) {
+        if (scheduleRepo.existsById(scheduleId)) {
+            scheduleRepo.deleteById(scheduleId);
+            return scheduleId + " Deleted Successfully";
+        } else {
+            throw new RuntimeException("Schedule not found");
+        }
+    }
+
+
 }
