@@ -42,13 +42,39 @@ function FeedBackAndComp() {
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Feedback submitted:', { feedbackName, rating, feedbackComment });
-    setFeedbackName('');
-    setRating(0);
-    setFeedbackComment('');
-    setIsSubmitting(false);
+  
+    const payload = {
+      username: feedbackName,         // Changed from feedbackName to username
+      rating: rating,                 // This field name already matches
+      message: feedbackComment,       // Changed from feedbackComment to message
+    };
+  
+    try {
+      const response = await fetch('http://localhost:8045/api/v1/feedback/saved', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (response.ok) {
+        const message = await response.text();
+        alert(`Feedback submitted: ${message}`);
+        setFeedbackName('');
+        setRating(0);
+        setFeedbackComment('');
+      } else {
+        alert('Failed to submit feedback.');
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Something went wrong.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+  
 
   const handleComplaintSubmit = async (e) => {
     e.preventDefault();
