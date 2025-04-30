@@ -22,7 +22,7 @@ jobs:
         java-version: '11'
 
     - name: Build with Maven
-      run: mvn clean install -f MyWebApp/pom.xml
+      run: mvn clean install -f backend/pom.xml
 
     - name: SonarQube Scan
       uses: SonarSource/sonarqube-scan-action@v5.1.0  # Using specific version instead of master
