@@ -13,5 +13,7 @@ public interface FeedBackService <FeedBack,Integer> {
 
     String deleteFeedBack(java.lang.Integer feedBackId);
 
-    FeedBackDTO updateUserRequest(FeedBackDTO updateDTO);
+
+
+    FeedBackDTO updateFeedback(FeedBackDTO updateDTO);
 }
