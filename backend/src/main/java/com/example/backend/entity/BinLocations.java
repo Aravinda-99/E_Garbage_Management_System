@@ -1,37 +1,35 @@
 package com.example.backend.entity;
 
 import lombok.*;
-import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
-@Table(name= "Locations")
+@Table(name = "locations")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @ToString
-
-
 public class BinLocations {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "location_id")
-    private int locationId;
+    private Integer locationId;
 
-    @Column(name = "locationName")
-    private String locationName;
-
-    @Column(name = "Address")
+    @Column(name = "address")
     private String address;
 
-    @Column(name = "binCapacity")
-    private int binCapacity;
+    @Column(name = "coordinates")
+    private String coordinates;
 
-    @Column(name = "currentLevel")
-    private int currentLevel;
+    @Column(name = "type")
+    private Integer type;
 
     @Column(name = "status")
-    private String status;
+    private Integer status;
+
+    @Column(name = "last_updated") // Changed from "Last Updated" to "last_updated"
+    private Date lastUpdated;
 }

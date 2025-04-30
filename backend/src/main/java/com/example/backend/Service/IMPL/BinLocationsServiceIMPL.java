@@ -24,55 +24,47 @@ public class BinLocationsServiceIMPL implements BinLocationsService {
     @Override
     public List<BinLocationsDTO> getAllBins() {
         List<BinLocations> binLocations = binLocationsRepo.findAll();
-
-        List<BinLocationsDTO> binLocationsDTOS = modelMapper.map(binLocations,new TypeToken<List<BinLocationsDTO>>(){}.getType());
-        return binLocationsDTOS;
+        return modelMapper.map(binLocations, new TypeToken<List<BinLocationsDTO>>() {}.getType());
     }
 
     @Override
     public String saveBins(BinLocationsDTO binsDTO) {
         BinLocations binLocation = new BinLocations(
                 binsDTO.getLocationId(),
-                binsDTO.getLocationName(),
                 binsDTO.getAddress(),
-                binsDTO.getBinCapacity(),
-                binsDTO.getCurrentLevel(),
-                binsDTO.getStatus()
+                binsDTO.getCoordinates(),
+                binsDTO.getType(),
+                binsDTO.getStatus(),
+                binsDTO.getLastUpdated()
         );
 
         binLocationsRepo.save(binLocation);
-        return "Saved " + binsDTO.getLocationName();
+        return "Saved Bin at Address: " + binsDTO.getAddress();
     }
 
     @Override
     public String deleteBins(Integer binId) {
         if (binLocationsRepo.existsById(binId)) {
             binLocationsRepo.deleteById(binId);
-            return binId + " Deleted Successfully";
+            return "Bin with ID " + binId + " deleted successfully.";
         } else {
-            throw new RuntimeException("Bin Not Found");
+            throw new RuntimeException("Bin not found with ID: " + binId);
         }
     }
 
     @Override
     public BinLocationsDTO updateBinLocations(BinLocationsDTO updateDTO) {
-        // Fetch existing feedback by ID
-        BinLocations existingRequest = binLocationsRepo.findById(updateDTO.getLocationId())
-                .orElseThrow(() -> new RuntimeException("Feedback not found"));
+        BinLocations existingLocation = binLocationsRepo.findById(updateDTO.getLocationId())
+                .orElseThrow(() -> new RuntimeException("Bin not found with ID: " + updateDTO.getLocationId()));
 
-        // Copy properties from DTO to entity (excluding any you want to preserve like ID/status)
-        BeanUtils.copyProperties(updateDTO, existingRequest, "status"); // "status" if exists
+        // Update the necessary fields
+        existingLocation.setAddress(updateDTO.getAddress());
+        existingLocation.setCoordinates(updateDTO.getCoordinates());
+        existingLocation.setType(updateDTO.getType());
+        existingLocation.setStatus(updateDTO.getStatus());
+        existingLocation.setLastUpdated(updateDTO.getLastUpdated());
 
-        // Save updated entity
-        BinLocations updatedBins = binLocationsRepo.save(existingRequest);
-
-        // Convert entity to DTO
-        BinLocationsDTO responseDTO = new BinLocationsDTO();
-        BeanUtils.copyProperties(updatedBins, responseDTO);
-
-        return responseDTO;
+        BinLocations updatedLocation = binLocationsRepo.save(existingLocation);
+        return modelMapper.map(updatedLocation, BinLocationsDTO.class);
     }
-
-    }
-
-
+}
