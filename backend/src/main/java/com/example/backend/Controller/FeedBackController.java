@@ -56,7 +56,7 @@ public class FeedBackController {
             @RequestBody FeedBackDTO updateDTO
     ) {
         updateDTO.setFeedbackId(feedbackId); // use proper setter
-        FeedBackDTO updatedFeedBack = feedBackService.updateUserRequest(updateDTO);
+        FeedBackDTO updatedFeedBack = feedBackService.updateFeedback(updateDTO);
         return ResponseEntity.ok(updatedFeedBack);
     }
 

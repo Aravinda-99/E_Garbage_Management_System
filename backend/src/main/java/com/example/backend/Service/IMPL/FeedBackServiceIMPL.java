@@ -76,7 +76,7 @@ public class FeedBackServiceIMPL implements FeedBackService {
 
 
     @Override
-    public FeedBackDTO updateUserRequest(FeedBackDTO updateDTO) {
+    public FeedBackDTO updateFeedback(FeedBackDTO updateDTO) {
         // Fetch existing feedback by ID
         FeedBack existingRequest = feedBackRepo.findById(updateDTO.getFeedbackId())
                 .orElseThrow(() -> new RuntimeException("Feedback not found"));
