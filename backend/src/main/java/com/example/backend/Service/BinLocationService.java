@@ -8,4 +8,8 @@ public interface BinLocationService {
     String saveBinLocation(BinLocationDTO binLocationDTO);
 
     List<BinLocationDTO> getAllBinLocations();
+
+    BinLocationDTO updateBinLocation(BinLocationDTO binLocationDTO);
+
+    String deleteBinLocation(Long id);
 }

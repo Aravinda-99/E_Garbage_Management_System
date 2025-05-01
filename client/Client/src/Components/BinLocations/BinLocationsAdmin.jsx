@@ -142,14 +142,19 @@ const BinLocationsAdmin = () => {
       setIsLoading(true);
       console.log("Sending data to backend:", binLocationDTO);
       
-      const response = await axios.post(`${API_BASE_URL}/save`, binLocationDTO, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      let response;
+      
+      // If there's an ID, it's an update operation
+      if (binLocationDTO.id) {
+        // Use PUT for update
+        response = await axios.put(`${API_BASE_URL}/update/${binLocationDTO.id}`, binLocationDTO);
+      } else {
+        // Use POST for create
+        response = await axios.post(`${API_BASE_URL}/save`, binLocationDTO);
+      }
       
       if (response.data) {
-        return { success: true, message: response.data };
+        return { success: true, data: response.data };
       } else {
         return { success: false, message: 'Failed to save bin location' };
       }
@@ -169,21 +174,18 @@ const BinLocationsAdmin = () => {
 
     const formattedDate = formatDateForBackend(new Date());
     
-    const updatedLocation = {
-      ...newLocation,
-      latitude: parseFloat(newLocation.latitude),
-      longitude: parseFloat(newLocation.longitude),
-      lastUpdated: formattedDate
-    };
-
+    // Parse latitude and longitude as floats
+    const parsedLatitude = parseFloat(newLocation.latitude);
+    const parsedLongitude = parseFloat(newLocation.longitude);
+    
     // Prepare data for backend according to DTO
     const binLocationDTO = {
       id: editingLocation?.id || null,
-      address: updatedLocation.address,
-      latitude: updatedLocation.latitude,
-      longitude: updatedLocation.longitude,
-      wasteType: updatedLocation.wasteType,
-      status: updatedLocation.status,
+      address: newLocation.address,
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
+      wasteType: newLocation.wasteType,
+      status: newLocation.status,
       lastUpdated: formattedDate
     };
 
@@ -191,17 +193,26 @@ const BinLocationsAdmin = () => {
     const result = await saveBinLocationToBackend(binLocationDTO);
 
     if (result.success) {
+      // Create updated location object for UI update
+      const updatedLocation = {
+        ...newLocation,
+        id: editingLocation?.id || result.data.id,
+        latitude: parsedLatitude,
+        longitude: parsedLongitude,
+        lastUpdated: formattedDate
+      };
+      
       if (editingLocation) {
         // Update existing location in UI
         setLocations(locations.map(loc => 
-          loc.id === editingLocation.id ? { ...updatedLocation, id: loc.id } : loc
+          loc.id === editingLocation.id ? updatedLocation : loc
         ));
         showToast('success', 'Bin updated successfully!');
       } else {
-        // Add new location to UI
+        // Add new location to UI with ID from response
         setLocations([...locations, {
           ...updatedLocation,
-          id: response.data.id || Math.max(...locations.map(loc => loc.id), 0) + 1
+          id: result.data.id || Math.max(...locations.map(loc => loc.id || 0), 0) + 1
         }]);
         showToast('success', 'Bin added successfully!');
       }
@@ -226,11 +237,27 @@ const BinLocationsAdmin = () => {
     // In a real application, you would use a proper toast library
   };
 
-  const handleDeleteLocation = (id) => {
-    // In a real application, you would call an API to delete the bin first
-    // For now, just update the UI
-    setLocations(locations.filter(loc => loc.id !== id));
-    showToast('success', 'Bin deleted successfully!');
+  // Updated handleDeleteLocation function to connect with backend
+  const handleDeleteLocation = async (id) => {
+    try {
+      setIsLoading(true);
+      
+      // Call backend API to delete the bin
+      const response = await axios.delete(`${API_BASE_URL}/delete/${id}`);
+      
+      if (response.status === 200) {
+        // Update the UI after successful deletion
+        setLocations(locations.filter(loc => loc.id !== id));
+        showToast('success', 'Bin deleted successfully!');
+      } else {
+        showToast('error', 'Failed to delete bin');
+      }
+    } catch (error) {
+      console.error('Error deleting bin location:', error);
+      showToast('error', error.response?.data || 'An error occurred while deleting the bin');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditLocation = (location) => {
