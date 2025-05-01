@@ -6,6 +6,7 @@ import com.example.backend.Service.BinLocationService;
 import com.example.backend.entity.BinLocation;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,4 +66,33 @@ public class BinLocationServiceIMPL implements BinLocationService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public BinLocationDTO updateBinLocation(BinLocationDTO binLocationDTO) {
+        // Check if bin location exists
+        if (!binLocationRepo.existsById(binLocationDTO.getId())) {
+            throw new RuntimeException("Bin location with ID " + binLocationDTO.getId() + " not found");
+        }
+
+        // Set the last updated timestamp
+        binLocationDTO.setLastUpdated(LocalDateTime.now());
+
+        // Map DTO to entity, save it, and map it back to DTO
+        BinLocation binLocation = modelMapper.map(binLocationDTO, BinLocation.class);
+        BinLocation savedBinLocation = binLocationRepo.save(binLocation);
+
+        // Return the updated bin location as DTO
+        return modelMapper.map(savedBinLocation, BinLocationDTO.class);
+    }
+
+    @Override
+    public String deleteBinLocation(Long id) {
+        if (binLocationRepo.existsById(id)) {
+            binLocationRepo.deleteById(id);
+            return id + " Deleted Successfully";
+        } else {
+            throw new RuntimeException("Bin location with ID " + id + " not found");
+        }
+    }
+
 }

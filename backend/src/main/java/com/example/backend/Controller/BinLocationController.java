@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.backend.DTO.BinLocationDTO;
@@ -28,4 +29,22 @@ public class BinLocationController {
         List<BinLocationDTO> allBinLocations = binLocationService.getAllBinLocations();
         return allBinLocations;
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<BinLocationDTO> updateBinLocation(
+            @PathVariable Long id,
+            @RequestBody BinLocationDTO binLocationDTO
+    ) {
+        binLocationDTO.setId(id);
+        BinLocationDTO updatedBinLocation = binLocationService.updateBinLocation(binLocationDTO);
+        return ResponseEntity.ok(updatedBinLocation);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteBinLocation(@PathVariable Long id) {
+        String message = binLocationService.deleteBinLocation(id);
+        return ResponseEntity.ok(message);
+    }
+
+
 }
