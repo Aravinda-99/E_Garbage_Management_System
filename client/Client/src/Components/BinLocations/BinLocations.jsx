@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { MapPin, Trash2, AlertCircle, CheckCircle2, Search, Filter, ChevronRight, Info } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { motion } from 'framer-motion';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
+import axios from 'axios'; // Make sure axios is installed: npm install axios
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,17 +14,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
-
-const mockLocations = [
-  { id: 1, latitude: 6.927079, longitude: 79.861244, address: "Colombo Fort, Colombo", wasteType: "organic", status: "half-full", lastUpdated: "2024-03-15 10:30" },
-  { id: 2, latitude: 6.914741, longitude: 79.872128, address: "Galle Face Green, Colombo", wasteType: "plastic", status: "empty", lastUpdated: "2024-03-15 09:45" },
-  { id: 3, latitude: 6.901691, longitude: 79.856975, address: "Kollupitiya, Colombo", wasteType: "paper", status: "full", lastUpdated: "2024-03-15 11:15" },
-  { id: 4, latitude: 6.935821, longitude: 79.850726, address: "Maradana, Colombo", wasteType: "metal", status: "empty", lastUpdated: "2024-03-15 12:00" },
-  { id: 5, latitude: 6.906079, longitude: 79.873157, address: "Bambalapitiya, Colombo", wasteType: "plastic", status: "half-full", lastUpdated: "2024-03-15 11:45" },
-  { id: 6, latitude: 6.9047, longitude: 79.9547, address: "Malabe", wasteType: "organic", status: "full", lastUpdated: "2024-03-15 13:00" },
-  { id: 7, latitude: 6.9107, longitude: 79.9185, address: "Kotte", wasteType: "plastic", status: "half-full", lastUpdated: "2024-03-15 13:15" },
-  { id: 8, latitude: 6.9155, longitude: 79.9285, address: "Rajagiriya", wasteType: "paper", status: "empty", lastUpdated: "2024-03-15 13:30" }
-];
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -93,11 +83,32 @@ const cardVariants = {
 };
 
 const BinLocations = () => {
+  const [binLocations, setBinLocations] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedWasteType, setSelectedWasteType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const mapRef = useRef(null);
+
+  // Fetch bin locations from the backend API
+  useEffect(() => {
+    const fetchBinLocations = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:8045/api/v1/BinLocation/get-all');
+        setBinLocations(response.data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching bin locations:', err);
+        setError('Failed to load bin locations. Please try again later.');
+        setLoading(false);
+      }
+    };
+
+    fetchBinLocations();
+  }, []);
 
   const handleLocationClick = (location) => {
     setSelectedLocation(location);
@@ -111,7 +122,7 @@ const BinLocations = () => {
     mapRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const filteredLocations = mockLocations.filter(location => {
+  const filteredLocations = binLocations.filter(location => {
     const matchesSearch = location.address.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesWasteType = selectedWasteType === 'all' || location.wasteType === selectedWasteType;
     const matchesStatus = selectedStatus === 'all' || location.status === selectedStatus;
@@ -333,54 +344,76 @@ const BinLocations = () => {
                   </span>
                 </div>
                 <div className="h-[500px] w-full relative">
-                  <MapContainer
-                    center={[6.9170822, 79.862846]}
-                    zoom={12}
-                    style={{ height: '100%', width: '100%' }}
-                    className="z-0"
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    {filteredLocations.map((location) => (
-                      <Marker
-                        key={location.id}
-                        position={[location.latitude, location.longitude]}
-                        eventHandlers={{ click: () => handleLocationClick(location) }}
-                      >
-                        <Popup className="rounded-lg shadow-lg border border-gray-200">
-                          <div className="p-3 max-w-xs">
-                            <div className="flex items-start">
-                              <img 
-                                src={getWasteTypeIcon(location.wasteType)} 
-                                alt={location.wasteType} 
-                                className="w-8 h-8 mr-3 mt-1" 
-                              />
-                              <div>
-                                <h3 className="font-semibold text-gray-800">{location.address}</h3>
-                                <div className="flex items-center mt-1">
-                                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(location.status)} flex items-center`}>
-                                    {getStatusIcon(location.status)}
-                                    <span className="ml-1 capitalize">{location.status}</span>
-                                  </span>
+                  {loading ? (
+                    <div className="h-full w-full flex items-center justify-center bg-gray-50">
+                      <div className="text-center">
+                        <div className="inline-block animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+                        <p className="mt-2 text-sm text-gray-600">Loading bin locations...</p>
+                      </div>
+                    </div>
+                  ) : error ? (
+                    <div className="h-full w-full flex items-center justify-center bg-gray-50">
+                      <div className="text-center text-red-500">
+                        <AlertCircle size={40} className="mx-auto mb-2" />
+                        <p>{error}</p>
+                        <button 
+                          className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                          onClick={() => window.location.reload()}
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <MapContainer
+                      center={[6.9170822, 79.862846]} // Default center - adjust if needed
+                      zoom={12}
+                      style={{ height: '100%', width: '100%' }}
+                      className="z-0"
+                    >
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      />
+                      {filteredLocations.map((location) => (
+                        <Marker
+                          key={location.id}
+                          position={[location.latitude, location.longitude]}
+                          eventHandlers={{ click: () => handleLocationClick(location) }}
+                        >
+                          <Popup className="rounded-lg shadow-lg border border-gray-200">
+                            <div className="p-3 max-w-xs">
+                              <div className="flex items-start">
+                                <img 
+                                  src={getWasteTypeIcon(location.wasteType)} 
+                                  alt={location.wasteType} 
+                                  className="w-8 h-8 mr-3 mt-1" 
+                                />
+                                <div>
+                                  <h3 className="font-semibold text-gray-800">{location.address}</h3>
+                                  <div className="flex items-center mt-1">
+                                    <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(location.status)} flex items-center`}>
+                                      {getStatusIcon(location.status)}
+                                      <span className="ml-1 capitalize">{location.status}</span>
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-2">Last Updated: {location.lastUpdated}</p>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">Last Updated: {location.lastUpdated}</p>
                               </div>
+                              <motion.button 
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="mt-3 w-full text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                onClick={() => handleLocationClick(location)}
+                              >
+                                <MapPin size={14} className="mr-1" /> Open in Maps
+                              </motion.button>
                             </div>
-                            <motion.button 
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              className="mt-3 w-full text-xs bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                              onClick={() => handleLocationClick(location)}
-                            >
-                              <MapPin size={14} className="mr-1" /> Open in Maps
-                            </motion.button>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    ))}
-                  </MapContainer>
+                          </Popup>
+                        </Marker>
+                      ))}
+                    </MapContainer>
+                  )}
                 </div>
               </motion.div>
             </div>
@@ -405,7 +438,17 @@ const BinLocations = () => {
                 </p>
               </div>
               <div className="overflow-y-auto max-h-[600px] custom-scrollbar">
-                {filteredLocations.length > 0 ? (
+                {loading ? (
+                  <div className="p-8 text-center">
+                    <div className="inline-block animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+                    <p className="mt-2 text-sm text-gray-600">Loading bin locations...</p>
+                  </div>
+                ) : error ? (
+                  <div className="p-8 text-center text-red-500">
+                    <AlertCircle size={40} className="mx-auto mb-2" />
+                    <p>{error}</p>
+                  </div>
+                ) : filteredLocations.length > 0 ? (
                   <motion.div 
                     variants={containerVariants}
                     initial="hidden"
