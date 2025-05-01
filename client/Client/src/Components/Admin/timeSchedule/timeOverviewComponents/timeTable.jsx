@@ -173,10 +173,10 @@ const TimeTable = ({ schedules, onDelete, onEdit, onApprove }) => {
                           required
                         >
                           <option value="">Select Waste Type</option>
-                          <option value="Organic">Organic</option>
-                          <option value="Recyclable">Recyclable</option>
-                          <option value="Hazardous">Hazardous</option>
-                          <option value="General">General</option>
+                          <option value="Organic">ORGANIC</option>
+                          <option value="Recyclable">PLASTIC</option>
+                          <option value="Hazardous">PAPER</option>
+                          <option value="General">GLASS</option>
                         </select>
                       </td>
                       <td className="px-6 py-4">
