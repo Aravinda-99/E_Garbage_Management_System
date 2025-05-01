@@ -19,3 +19,4 @@ The E-Garbage Management System is a web-based application designed to streamlin
 - **Map Integration**: Google Maps API or Leaflet.js
 - **Authentication**: JWT / Session-based (mention what's used)
 
+![image alt](https://github.com/Aravinda-99/E_Garbage_Management_System/blob/8e289dc6ce25a43da153b9d4b620dca228faf937/E-farbage-management.jpeg)
