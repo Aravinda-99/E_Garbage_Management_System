@@ -17,12 +17,8 @@ import lombok.NoArgsConstructor;
 public class ScheduleDTO {
 
     private Long id;
-
     private LocalDate date;
-
     private LocalTime time;
-
     private String location;
-
     private WasteType wasteType;
 }
