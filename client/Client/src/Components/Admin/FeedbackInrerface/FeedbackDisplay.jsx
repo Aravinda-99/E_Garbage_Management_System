@@ -53,6 +53,18 @@ function FeedbackDisplay() {
     fetchFeedback();
   }, []);
 
+  // Handle edit feedback
+  const handleEdit = (id) => {
+    console.log(`Editing feedback with id: ${id}`);
+    // Implement edit functionality here
+  };
+
+  // Handle delete feedback
+  const handleDelete = (id) => {
+    console.log(`Deleting feedback with id: ${id}`);
+    // Implement delete functionality here
+  };
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -114,7 +126,7 @@ function FeedbackDisplay() {
                 variants={itemVariants}
                 className="flex justify-center"
               >
-                <div className="w-full max-w-md">
+                <div className="w-full max-w-md relative">
                   <FeedbackList 
                     feedbacks={[{
                       id: feedback.feedbackId,
@@ -124,6 +136,21 @@ function FeedbackDisplay() {
                       createdAt: feedback.date || new Date().toISOString()
                     }]} 
                   />
+                  {/* Add edit and delete buttons */}
+                  <div className="absolute top-4 right-4 flex space-x-2">
+                    <button 
+                      onClick={() => handleEdit(feedback.feedbackId)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(feedback.feedbackId)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}
