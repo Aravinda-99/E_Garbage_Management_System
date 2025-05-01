@@ -16,6 +16,13 @@ function FeedBackAndComp() {
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+
+  // Updated API Base URL to match your Spring controller endpoint
+  const FEEDBACK_API_URL = 'http://localhost:8045/api/v1/feedback';
+  // Keep original API for complaints
+  const API_BASE_URL = 'http://localhost:8045';
 
   useEffect(() => {
     setIsMounted(true);
@@ -39,18 +46,27 @@ function FeedBackAndComp() {
     }
   };
 
+  const showNotification = (message, isSuccess = true) => {
+    setSubmitMessage(message);
+    setShowMessage(true);
+    setTimeout(() => {
+      setShowMessage(false);
+    }, 3000);
+  };
+
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
   
+    // Updated payload to match FeedBackDTO fields expected by backend
     const payload = {
-      username: feedbackName,         // Changed from feedbackName to username
-      rating: rating,                 // This field name already matches
-      message: feedbackComment,       // Changed from feedbackComment to message
+      username: feedbackName,      // Match DTO field name
+      message: feedbackComment,    // Match DTO field name
+      rating: rating
     };
   
     try {
-      const response = await fetch('http://localhost:8045/api/v1/feedback/saved', {
+      const response = await fetch(`${FEEDBACK_API_URL}/saved`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,32 +76,96 @@ function FeedBackAndComp() {
   
       if (response.ok) {
         const message = await response.text();
-        alert(`Feedback submitted: ${message}`);
+        showNotification(`Feedback submitted: ${message}`, true);
         setFeedbackName('');
         setRating(0);
         setFeedbackComment('');
       } else {
-        alert('Failed to submit feedback.');
+        showNotification('Failed to submit feedback.', false);
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      alert('Something went wrong.');
+      showNotification('Something went wrong.', false);
     } finally {
       setIsSubmitting(false);
     }
   };
   
-
   const handleComplaintSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Complaint submitted:', { complaintName, complaintText, selectedImage });
-    setComplaintName('');
-    setComplaintText('');
-    setSelectedImage(null);
-    setImagePreview(null);
-    setIsSubmitting(false);
+    
+    try {
+      // For image upload, we'll need to use FormData
+      if (selectedImage) {
+        // Convert image to base64 for backend storage
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedImage);
+        reader.onloadend = async () => {
+          const base64Image = reader.result;
+          
+          // Match backend field names: name, complain, image
+          const payload = {
+            name: complaintName,
+            complain: complaintText,
+            image: base64Image
+          };
+          
+          const response = await fetch(`${API_BASE_URL}/saved`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          if (response.ok) {
+            const message = await response.text();
+            showNotification(`Complaint submitted: ${message}`, true);
+            // Reset form
+            setComplaintName('');
+            setComplaintText('');
+            setSelectedImage(null);
+            setImagePreview(null);
+          } else {
+            showNotification('Failed to submit complaint with image.', false);
+          }
+          setIsSubmitting(false);
+        };
+      } else {
+        // If no image, just send JSON with matching field names
+        const payload = {
+          name: complaintName,
+          complain: complaintText,
+          image: null
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/saved`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        
+        if (response.ok) {
+          const message = await response.text();
+          showNotification(`Complaint submitted: ${message}`, true);
+          // Reset form
+          setComplaintName('');
+          setComplaintText('');
+          setSelectedImage(null);
+          setImagePreview(null);
+        } else {
+          showNotification('Failed to submit complaint.', false);
+        }
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error('Error submitting complaint:', error);
+      showNotification('Something went wrong.', false);
+      setIsSubmitting(false);
+    }
   };
 
   const removeImage = () => {
@@ -138,6 +218,20 @@ function FeedBackAndComp() {
               Help us improve our service with your valuable feedback
             </p>
           </motion.div>
+
+          {/* Notification Message */}
+          <AnimatePresence>
+            {showMessage && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="max-w-md mx-auto mb-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded-lg"
+              >
+                {submitMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <motion.div 
             initial={{ scale: 0.95, opacity: 0 }}
