@@ -1,45 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Edit, Plus, X, Save, AlertCircle, CheckCircle2, Search } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
 
 // Initial mock data
 const initialLocations = [
-  { id: 1, latitude: 6.927079, longitude: 79.861244, address: "Colombo Fort, Colombo", wasteType: "organic", status: "half-full", lastUpdated: "2024-03-15 10:30" },
-  { id: 2, latitude: 6.914741, longitude: 79.872128, address: "Galle Face Green, Colombo", wasteType: "plastic", status: "empty", lastUpdated: "2024-03-15 09:45" },
-  { id: 3, latitude: 6.901691, longitude: 79.856975, address: "Kollupitiya, Colombo", wasteType: "paper", status: "full", lastUpdated: "2024-03-15 11:15" },
-  { id: 4, latitude: 6.935821, longitude: 79.850726, address: "Maradana, Colombo", wasteType: "metal", status: "empty", lastUpdated: "2024-03-15 12:00" },
-  { id: 5, latitude: 6.906079, longitude: 79.873157, address: "Bambalapitiya, Colombo", wasteType: "plastic", status: "half-full", lastUpdated: "2024-03-15 11:45" }
+  { id: 1, latitude: 6.927079, longitude: 79.861244, address: "Colombo Fort, Colombo", wasteType: "ORGANIC", status: "HALF_FULL", lastUpdated: "2024-03-15T10:30:00" },
+  { id: 2, latitude: 6.914741, longitude: 79.872128, address: "Galle Face Green, Colombo", wasteType: "PLASTIC", status: "EMPTY", lastUpdated: "2024-03-15T09:45:00" },
+  { id: 3, latitude: 6.901691, longitude: 79.856975, address: "Kollupitiya, Colombo", wasteType: "PAPER", status: "FULL", lastUpdated: "2024-03-15T11:15:00" },
+  { id: 4, latitude: 6.935821, longitude: 79.850726, address: "Maradana, Colombo", wasteType: "METAL", status: "EMPTY", lastUpdated: "2024-03-15T12:00:00" },
+  { id: 5, latitude: 6.906079, longitude: 79.873157, address: "Bambalapitiya, Colombo", wasteType: "PLASTIC", status: "HALF_FULL", lastUpdated: "2024-03-15T11:45:00" }
 ];
+
+// API Base URL
+const API_BASE_URL = 'http://localhost:8045/api/v1/BinLocation';
 
 // Utility functions
 const getStatusColor = (status) => {
   switch (status) {
-    case 'empty': return 'bg-green-100 text-green-800';
-    case 'half-full': return 'bg-amber-100 text-amber-800';
-    case 'full': return 'bg-red-100 text-red-800';
+    case 'EMPTY': return 'bg-green-100 text-green-800';
+    case 'HALF_FULL': return 'bg-amber-100 text-amber-800';
+    case 'FULL': return 'bg-red-100 text-red-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
 
 const getWasteTypeIcon = (type) => {
   switch (type) {
-    case 'organic': return '🌱';
-    case 'plastic': return '♻️';
-    case 'paper': return '📄';
-    case 'metal': return '🔧';
+    case 'ORGANIC': return '🌱';
+    case 'PLASTIC': return '♻️';
+    case 'PAPER': return '📄';
+    case 'METAL': return '🔧';
     default: return '🗑️';
   }
 };
 
-const formatDateTime = (date) => {
-  const d = new Date(date);
-  return d.toLocaleString('en-US', {
+// Format status for display
+const formatStatus = (status) => {
+  return status === 'HALF_FULL' ? 'half-full' : status.toLowerCase();
+};
+
+// Format waste type for display
+const formatWasteType = (type) => {
+  return type.toLowerCase();
+};
+
+// Format display date for UI
+const formatDisplayDate = (isoString) => {
+  const date = new Date(isoString);
+  return date.toLocaleString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit'
   });
+};
+
+// Format date for backend as ISO string
+const formatDateForBackend = (date) => {
+  if (typeof date === 'string' && date.includes('T')) {
+    return date; // Already in ISO format
+  }
+  return new Date().toISOString();
 };
 
 const BinLocationsAdmin = () => {
@@ -50,9 +72,9 @@ const BinLocationsAdmin = () => {
     latitude: '',
     longitude: '',
     address: '',
-    wasteType: 'organic',
-    status: 'empty',
-    lastUpdated: formatDateTime(new Date())
+    wasteType: 'ORGANIC',
+    status: 'EMPTY',
+    lastUpdated: new Date().toISOString()
   });
   const [errors, setErrors] = useState({
     latitude: '',
@@ -60,12 +82,13 @@ const BinLocationsAdmin = () => {
     address: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filter locations based on search term
   const filteredLocations = locations.filter(location =>
     location.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    location.wasteType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    location.status.toLowerCase().includes(searchTerm.toLowerCase())
+    formatWasteType(location.wasteType).includes(searchTerm.toLowerCase()) ||
+    formatStatus(location.status).includes(searchTerm.toLowerCase())
   );
 
   // Validate form fields
@@ -104,43 +127,101 @@ const BinLocationsAdmin = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSaveLocation = () => {
+  // Function to save bin location to backend
+  const saveBinLocationToBackend = async (binLocationDTO) => {
+    try {
+      setIsLoading(true);
+      console.log("Sending data to backend:", binLocationDTO);
+      
+      const response = await axios.post(`${API_BASE_URL}/save`, binLocationDTO, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data) {
+        return { success: true, message: response.data };
+      } else {
+        return { success: false, message: 'Failed to save bin location' };
+      }
+    } catch (error) {
+      console.error('Error saving bin location:', error);
+      return { 
+        success: false, 
+        message: error.response?.data || 'An error occurred while saving the bin location'
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveLocation = async () => {
     if (!validateForm()) return;
 
+    const formattedDate = formatDateForBackend(new Date());
+    
     const updatedLocation = {
       ...newLocation,
       latitude: parseFloat(newLocation.latitude),
       longitude: parseFloat(newLocation.longitude),
-      lastUpdated: formatDateTime(new Date())
+      lastUpdated: formattedDate
     };
 
-    if (editingLocation) {
-      setLocations(locations.map(loc => 
-        loc.id === editingLocation.id ? updatedLocation : loc
-      ));
-      toast.success('Bin updated successfully!');
-    } else {
-      setLocations([...locations, {
-        ...updatedLocation,
-        id: Math.max(...locations.map(loc => loc.id)) + 1
-      }]);
-      toast.success('Bin added successfully!');
-    }
+    // Prepare data for backend according to DTO
+    const binLocationDTO = {
+      id: editingLocation?.id || null,
+      address: updatedLocation.address,
+      latitude: updatedLocation.latitude,
+      longitude: updatedLocation.longitude,
+      wasteType: updatedLocation.wasteType,
+      status: updatedLocation.status,
+      lastUpdated: formattedDate
+    };
 
-    setIsModalOpen(false);
-    setNewLocation({
-      latitude: '',
-      longitude: '',
-      address: '',
-      wasteType: 'organic',
-      status: 'empty',
-      lastUpdated: formatDateTime(new Date())
-    });
+    // Send data to backend
+    const result = await saveBinLocationToBackend(binLocationDTO);
+
+    if (result.success) {
+      if (editingLocation) {
+        // Update existing location in UI
+        setLocations(locations.map(loc => 
+          loc.id === editingLocation.id ? { ...updatedLocation, id: loc.id } : loc
+        ));
+        showToast('success', 'Bin updated successfully!');
+      } else {
+        // Add new location to UI
+        setLocations([...locations, {
+          ...updatedLocation,
+          id: Math.max(...locations.map(loc => loc.id), 0) + 1
+        }]);
+        showToast('success', 'Bin added successfully!');
+      }
+
+      setIsModalOpen(false);
+      setNewLocation({
+        latitude: '',
+        longitude: '',
+        address: '',
+        wasteType: 'ORGANIC',
+        status: 'EMPTY',
+        lastUpdated: new Date().toISOString()
+      });
+    } else {
+      showToast('error', result.message);
+    }
+  };
+
+  // Simple toast function (since react-hot-toast was imported but not properly installed)
+  const showToast = (type, message) => {
+    alert(`${type.toUpperCase()}: ${message}`);
+    // In a real application, you would use a proper toast library
   };
 
   const handleDeleteLocation = (id) => {
+    // In a real application, you would call an API to delete the bin first
+    // For now, just update the UI
     setLocations(locations.filter(loc => loc.id !== id));
-    toast.success('Bin deleted successfully!');
+    showToast('success', 'Bin deleted successfully!');
   };
 
   const handleEditLocation = (location) => {
@@ -159,18 +240,18 @@ const BinLocationsAdmin = () => {
       latitude: '',
       longitude: '',
       address: '',
-      wasteType: 'organic',
-      status: 'empty',
-      lastUpdated: formatDateTime(new Date())
+      wasteType: 'ORGANIC',
+      status: 'EMPTY',
+      lastUpdated: new Date().toISOString()
     });
     setErrors({ latitude: '', longitude: '', address: '' });
     setIsModalOpen(true);
   };
 
   const statusCounts = {
-    empty: locations.filter(loc => loc.status === 'empty').length,
-    halfFull: locations.filter(loc => loc.status === 'half-full').length,
-    full: locations.filter(loc => loc.status === 'full').length
+    empty: locations.filter(loc => loc.status === 'EMPTY').length,
+    halfFull: locations.filter(loc => loc.status === 'HALF_FULL').length,
+    full: locations.filter(loc => loc.status === 'FULL').length
   };
 
   return (
@@ -269,15 +350,19 @@ const BinLocationsAdmin = () => {
                       </td>
                       <td className="p-4">
                         <span className="capitalize px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                          {location.wasteType}
+                          {formatWasteType(location.wasteType)}
                         </span>
                       </td>
                       <td className="p-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(location.status)}`}>
-                          {location.status}
+                          {formatStatus(location.status)}
                         </span>
                       </td>
-                      <td className="p-4 text-gray-500 text-sm">{location.lastUpdated}</td>
+                      <td className="p-4 text-gray-500 text-sm">
+                        {location.lastUpdated.includes('T') 
+                          ? formatDisplayDate(location.lastUpdated) 
+                          : location.lastUpdated}
+                      </td>
                       <td className="p-4">
                         <div className="flex justify-end gap-2">
                           <button 
@@ -379,10 +464,10 @@ const BinLocationsAdmin = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
                   >
-                    <option value="organic">Organic</option>
-                    <option value="plastic">Plastic</option>
-                    <option value="paper">Paper</option>
-                    <option value="metal">Metal</option>
+                    <option value="ORGANIC">Organic</option>
+                    <option value="PLASTIC">Plastic</option>
+                    <option value="PAPER">Paper</option>
+                    <option value="METAL">Metal</option>
                   </select>
                 </div>
                 
@@ -394,9 +479,9 @@ const BinLocationsAdmin = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500"
                   >
-                    <option value="empty">Empty</option>
-                    <option value="half-full">Half Full</option>
-                    <option value="full">Full</option>
+                    <option value="EMPTY">Empty</option>
+                    <option value="HALF_FULL">Half Full</option>
+                    <option value="FULL">Full</option>
                   </select>
                 </div>
               </div>
@@ -410,17 +495,25 @@ const BinLocationsAdmin = () => {
                 </button>
                 <button
                   onClick={handleSaveLocation}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                  disabled={isLoading}
+                  className={`px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center gap-2 ${isLoading ? 'opacity-75 cursor-not-allowed' : ''}`}
                 >
-                  <Save size={18} />
-                  {editingLocation ? 'Update' : 'Save'}
+                  {isLoading ? (
+                    <>
+                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                      {editingLocation ? 'Updating...' : 'Saving...'}
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      {editingLocation ? 'Update' : 'Save'}
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           </div>
         )}
-
-        <Toaster position="top-right" />
       </div>
     </div>
   );
