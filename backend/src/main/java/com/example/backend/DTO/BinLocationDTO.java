@@ -17,22 +17,11 @@ import lombok.NoArgsConstructor;
 public class BinLocationDTO {
 
     private Long id;
-
-
     private String address;
-
-
     private Double latitude;
-
-
     private Double longitude;
-
-
     private WasteType wasteType;
-
-
     private BinStatus status;
-
     private LocalDateTime lastUpdated;
 
     // Formatted coordinates string for display purposes

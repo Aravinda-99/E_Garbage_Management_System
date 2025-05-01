@@ -2,15 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Trash2, Edit, Plus, X, Save, AlertCircle, CheckCircle2, Search } from 'lucide-react';
 import axios from 'axios';
 
-// Initial mock data
-const initialLocations = [
-  { id: 1, latitude: 6.927079, longitude: 79.861244, address: "Colombo Fort, Colombo", wasteType: "ORGANIC", status: "HALF_FULL", lastUpdated: "2024-03-15T10:30:00" },
-  { id: 2, latitude: 6.914741, longitude: 79.872128, address: "Galle Face Green, Colombo", wasteType: "PLASTIC", status: "EMPTY", lastUpdated: "2024-03-15T09:45:00" },
-  { id: 3, latitude: 6.901691, longitude: 79.856975, address: "Kollupitiya, Colombo", wasteType: "PAPER", status: "FULL", lastUpdated: "2024-03-15T11:15:00" },
-  { id: 4, latitude: 6.935821, longitude: 79.850726, address: "Maradana, Colombo", wasteType: "METAL", status: "EMPTY", lastUpdated: "2024-03-15T12:00:00" },
-  { id: 5, latitude: 6.906079, longitude: 79.873157, address: "Bambalapitiya, Colombo", wasteType: "PLASTIC", status: "HALF_FULL", lastUpdated: "2024-03-15T11:45:00" }
-];
-
 // API Base URL
 const API_BASE_URL = 'http://localhost:8045/api/v1/BinLocation';
 
@@ -65,7 +56,7 @@ const formatDateForBackend = (date) => {
 };
 
 const BinLocationsAdmin = () => {
-  const [locations, setLocations] = useState(initialLocations);
+  const [locations, setLocations] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState(null);
   const [newLocation, setNewLocation] = useState({
@@ -83,6 +74,24 @@ const BinLocationsAdmin = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch all bin locations from backend
+  useEffect(() => {
+    const fetchBinLocations = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/get-all`);
+        setLocations(response.data);
+      } catch (error) {
+        console.error('Error fetching bin locations:', error);
+        showToast('error', 'Failed to fetch bin locations');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBinLocations();
+  }, []);
 
   // Filter locations based on search term
   const filteredLocations = locations.filter(location =>
@@ -192,7 +201,7 @@ const BinLocationsAdmin = () => {
         // Add new location to UI
         setLocations([...locations, {
           ...updatedLocation,
-          id: Math.max(...locations.map(loc => loc.id), 0) + 1
+          id: response.data.id || Math.max(...locations.map(loc => loc.id), 0) + 1
         }]);
         showToast('success', 'Bin added successfully!');
       }
@@ -336,7 +345,13 @@ const BinLocationsAdmin = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredLocations.length > 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="6" className="p-8 text-center text-gray-500">
+                      Loading bins...
+                    </td>
+                  </tr>
+                ) : filteredLocations.length > 0 ? (
                   filteredLocations.map((location) => (
                     <tr key={location.id} className="hover:bg-gray-50 transition-colors">
                       <td className="p-4 font-medium text-gray-800">
@@ -384,7 +399,7 @@ const BinLocationsAdmin = () => {
                 ) : (
                   <tr>
                     <td colSpan="6" className="p-8 text-center text-gray-500">
-                      No bins found matching your search
+                      No bins found
                     </td>
                   </tr>
                 )}
