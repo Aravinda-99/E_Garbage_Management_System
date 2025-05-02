@@ -11,6 +11,8 @@ import MultipleProjects from '../Page/MultipleProjects.jsx';
 import FAQSection from '../Page/QuestionAsked.jsx';
 import FeedBackAndComp from '../Page/FeedbackAndComplains.jsx';
 import Card from '../Admin/FeedBackButton/Card.jsx';
+// import AIBot from '../AIBot/AIBot.jsx';
+
 import AIBot from '../AIBot/AIBot.jsx';
 import FeedbackBanner from '../../Components/Admin/FeedbackInrerface/FeedbackBanner.jsx';
 
@@ -24,7 +26,9 @@ function Home() {
       <div className="relative z-50">
         <Navbar />
       </div>
+      {/* <AIBot /> */}
       <AIBot />
+
 
       {/* Main content wrapper */}
       <div className="relative z-10">

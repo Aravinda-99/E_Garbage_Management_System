@@ -7,6 +7,7 @@ import com.example.backend.DTO.updateController.RequestUpdateUserDTO;
 import com.example.backend.Service.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class RequestServiceController {
     @Autowired
     private RequestService requestService;
 
+//    @PostAuthorize("hasRole('USER')")
     @PostMapping("/save")
     public ResponseEntity<String> save(@RequestBody RequestServiceDTO dto) {
         try {
@@ -38,6 +40,7 @@ public class RequestServiceController {
 
 
 
+//    @PostAuthorize("hasRole('USER')")
     @GetMapping(path = "/get-all-request")
     public List<RequestServiceDTO> getAllRequest() {
 
@@ -45,6 +48,7 @@ public class RequestServiceController {
         return allRequest;
     }
 
+//    @PostAuthorize("hasRole('USER')")
     @DeleteMapping(path = "delete-request/{id}")
     public String deleteRequest(@PathVariable(value = "id") Integer requestId) {
         String deleted = requestService.deleteRequest(requestId);
@@ -52,6 +56,7 @@ public class RequestServiceController {
     }
 
 
+//    @PostAuthorize("hasRole('USER')")
     @PutMapping("/update/{requestId}")
     public ResponseEntity<RequestServiceDTO> updateRequest(
             @PathVariable Integer requestId,
@@ -62,6 +67,7 @@ public class RequestServiceController {
         return ResponseEntity.ok(updatedRequest);
     }
 
+//    @PostAuthorize("hasRole('ADMIN')")
     @PutMapping("/{requestId}/update-status")
     public ResponseEntity<?> updateRequestStatus(
             @PathVariable Integer requestId,
