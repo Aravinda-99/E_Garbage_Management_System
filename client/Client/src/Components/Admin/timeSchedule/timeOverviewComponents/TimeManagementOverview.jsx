@@ -1,421 +1,210 @@
-import React, { useState } from 'react';
-import TimeStatistics from '../dashbordComponent/timeStatistics.jsx'; // Adjust path as needed
-import TimeTable from './timeOverviewComponents/timeTable.jsx'; // Adjust path as needed
-import { motion, AnimatePresence } from 'framer-motion';
-import { jsPDF } from 'jspdf'; // Import jsPDF for PDF generation
+import React, { useState, useCallback } from 'react';
+import axios from 'axios';
+import { Button } from '../TimeSchedulingComponents/ui/button';
+import { Input } from '../TimeSchedulingComponents/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../TimeSchedulingComponents/ui/select';
+import { toast } from 'sonner';
 
-const TimeManagementOverview = () => {
-  // State for schedules and statistics
-  const [schedules, setSchedules] = useState([]);
-  const [timeStats, setTimeStats] = useState({
-    scheduled: 0,
-    completed: 0,
-    pending: 0,
-    locations: 0,
-  });
+const TimeManagementOverview = ({ onScheduleApproved }) => {
+    const [schedules, setSchedules] = useState([
+        // Example schedule data
+        { id: '1', date: '2025-05-05', time: '07:00', location: 'Downtown', wasteType: 'Organic', status: 'pending' }
+    ]);
 
-  // State for new schedule form, including wasteType
-  const [newSchedule, setNewSchedule] = useState({
-    id: '',
-    date: '',
-    time: '',
-    location: '',
-    wasteType: '',
-    status: 'pending',
-  });
+    // State for new schedule form
+    const [newSchedule, setNewSchedule] = useState({
+        date: '',
+        time: '',
+        location: '',
+        wasteType: ''
+    });
 
-  // State for error messages
-  const [errors, setErrors] = useState({});
+    // Current date for validation (May 3, 2025, as per system context)
+    const today = new Date('2025-05-03');
+    today.setHours(0, 0, 0, 0);
 
-  // CREATE: Add new schedule
-  const handleCreateSchedule = () => {
-    let formErrors = {};
-    if (!newSchedule.date) formErrors.date = 'Date is required';
-    if (!newSchedule.time) formErrors.time = 'Time is required';
-    if (!newSchedule.location) formErrors.location = 'Location is required';
-    if (!newSchedule.wasteType) formErrors.wasteType = 'Waste Type is required';
+    const handleApproveSchedule = useCallback(async (schedule) => {
+        // Validate date: block past dates
+        const scheduleDate = new Date(schedule.date);
+        if (scheduleDate < today) {
+            alert('Cannot approve a schedule for a past date.');
+            return;
+        }
 
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      return; // Stop if there are errors
-    }
+        try {
+            console.log('Approving schedule:', schedule);
+            // Update schedule status to "completed" in backend
+            await axios.put(`http://localhost:8045/api/v1/shedule/update-schedule/${schedule.id}`, {
+                ...schedule,
+                status: 'completed'
+            });
+            // Update local state
+            setSchedules(prev => prev.map(s => s.id === schedule.id ? { ...s, status: 'completed' } : s));
+            // Call the onScheduleApproved callback
+            if (onScheduleApproved) {
+                console.log('Calling onScheduleApproved with:', schedule);
+                onScheduleApproved(schedule);
+            }
+            toast.success('Schedule approved successfully!', {
+                position: 'top-right',
+                duration: 2000,
+            });
+        } catch (error) {
+            console.error('Error approving schedule:', error);
+            toast.error('Failed to approve schedule.', {
+                position: 'top-right',
+                duration: 3000,
+            });
+        }
+    }, [onScheduleApproved]);
 
-    const scheduleWithId = {
-      ...newSchedule,
-      id: Date.now().toString(), // Simple unique ID generation
+    const handleInputChange = (field, value) => {
+        setNewSchedule(prev => ({ ...prev, [field]: value }));
     };
 
-    const updatedSchedules = [...schedules, scheduleWithId];
-    setSchedules(updatedSchedules);
-    updateStats(updatedSchedules);
+    const handleCreateSchedule = useCallback(async () => {
+        // Validate required fields
+        if (!newSchedule.date || !newSchedule.time || !newSchedule.location || !newSchedule.wasteType) {
+            toast.error('Please fill in all fields.', {
+                position: 'top-right',
+                duration: 3000,
+            });
+            return;
+        }
 
-    // Reset form and clear errors
-    setNewSchedule({
-      id: '',
-      date: '',
-      time: '',
-      location: '',
-      wasteType: '',
-      status: 'pending',
-    });
-    setErrors({});
-  };
+        // Validate date: block past dates, allow present or future
+        const selectedDate = new Date(newSchedule.date);
+        if (selectedDate < today) {
+            alert('Cannot create a schedule for a past date.');
+            return;
+        }
 
-  // READ: Update statistics based on schedules
-  const updateStats = (updatedSchedules) => {
-    setTimeStats({
-      scheduled: updatedSchedules.length,
-      completed: updatedSchedules.filter(s => s.status === 'completed').length,
-      pending: updatedSchedules.filter(s => s.status === 'pending').length,
-      locations: new Set(updatedSchedules.map(s => s.location)).size,
-    });
-  };
+        try {
+            console.log('Creating new schedule:', newSchedule);
+            // Send POST request to backend to create a new schedule
+            const response = await axios.post('http://localhost:8045/api/v1/shedule/create-schedule', {
+                date: newSchedule.date,
+                time: newSchedule.time + ':00', // Append seconds to match backend format (HH:mm:ss)
+                location: newSchedule.location,
+                wasteType: newSchedule.wasteType.toUpperCase(), // Convert to uppercase to match backend enum
+                status: 'pending'
+            });
 
-  // UPDATE: Edit existing schedule
-  const handleEditSchedule = (updatedSchedule) => {
-    const updatedSchedules = schedules.map(schedule =>
-      schedule.id === updatedSchedule.id ? updatedSchedule : schedule
+            // Add the new schedule to the local state
+            const newScheduleWithId = {
+                id: response.data.id || Date.now().toString(), // Use backend ID if available, else fallback
+                date: newSchedule.date,
+                time: newSchedule.time,
+                location: newSchedule.location,
+                wasteType: newSchedule.wasteType,
+                status: 'pending'
+            };
+            setSchedules(prev => [...prev, newScheduleWithId]);
+
+            // Reset form
+            setNewSchedule({ date: '', time: '', location: '', wasteType: '' });
+
+            toast.success('Schedule created successfully!', {
+                position: 'top-right',
+                duration: 2000,
+            });
+        } catch (error) {
+            console.error('Error creating schedule:', error);
+            toast.error('Failed to create schedule.', {
+                position: 'top-right',
+                duration: 3000,
+            });
+        }
+    }, [newSchedule, today]);
+
+    // Available waste types (aligned with backend WasteType enum)
+    const wasteTypes = ['Organic', 'Recyclable', 'Hazardous', 'General', 'Mixed', 'Glass', 'Electronic', 'Paper'];
+
+    return (
+        <div className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Schedule Management</h2>
+
+            {/* Form to Create New Schedule */}
+            <div className="bg-white p-4 mb-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-medium mb-4">Create New Schedule</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Date</label>
+                        <Input
+                            type="date"
+                            value={newSchedule.date}
+                            onChange={(e) => handleInputChange('date', e.target.value)}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Time</label>
+                        <Input
+                            type="time"
+                            value={newSchedule.time}
+                            onChange={(e) => handleInputChange('time', e.target.value)}
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Location</label>
+                        <Input
+                            type="text"
+                            value={newSchedule.location}
+                            onChange={(e) => handleInputChange('location', e.target.value)}
+                            placeholder="Enter location"
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Waste Type</label>
+                        <Select
+                            value={newSchedule.wasteType}
+                            onValueChange={(value) => handleInputChange('wasteType', value)}
+                        >
+                            <SelectTrigger className="mt-1 w-full">
+                                <SelectValue placeholder="Select waste type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {wasteTypes.map(type => (
+                                    <SelectItem key={type} value={type}>
+                                        {type}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <Button
+                    onClick={handleCreateSchedule}
+                    className="mt-4 bg-blue-500 text-white hover:bg-blue-600"
+                >
+                    Create Schedule
+                </Button>
+            </div>
+
+            {/* Existing Schedules */}
+            {schedules.map(schedule => (
+                <div key={schedule.id} className="bg-white p-4 mb-4 rounded-lg shadow-md flex justify-between items-center">
+                    <div>
+                        <p><strong>Type:</strong> {schedule.wasteType}</p>
+                        <p><strong>Location:</strong> {schedule.location}</p>
+                        <p><strong>Date:</strong> {schedule.date}</p>
+                        <p><strong>Time:</strong> {schedule.time}</p>
+                        <p><strong>Status:</strong> {schedule.status}</p>
+                    </div>
+                    {schedule.status === 'pending' && (
+                        <Button
+                            onClick={() => handleApproveSchedule(schedule)}
+                            className="bg-green-500 text-white hover:bg-green-600"
+                        >
+                            Approve
+                        </Button>
+                    )}
+                </div>
+            ))}
+        </div>
     );
-    setSchedules(updatedSchedules);
-    updateStats(updatedSchedules);
-  };
-
-  // DELETE: Remove schedule
-  const handleDeleteSchedule = (scheduleToDelete) => {
-    const updatedSchedules = schedules.filter(
-      schedule => schedule.id !== scheduleToDelete.id
-    );
-    setSchedules(updatedSchedules);
-    updateStats(updatedSchedules);
-  };
-
-  // UPDATE: Approve schedule
-  const handleApproveSchedule = (schedule) => {
-    const updatedSchedules = schedules.map(s =>
-      s.id === schedule.id ? { ...s, status: 'completed' } : s
-    );
-    setSchedules(updatedSchedules);
-    updateStats(updatedSchedules);
-  };
-
-  // Form input handler
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewSchedule(prev => ({ ...prev, [name]: value }));
-    // Clear the error message for the field being changed
-    setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
-  };
-
-  // Generate PDF for schedules
-  const handleGeneratePDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('Waste Collection Schedules', 20, 20);
-
-    doc.setFontSize(12);
-    doc.text('Generated on: ' + new Date().toLocaleDateString(), 20, 30);
-
-    // Table headers
-    const headers = ['Date', 'Time', 'Location', 'Waste Type', 'Status'];
-    const startY = 40;
-    let y = startY;
-
-    // Draw headers
-    doc.setFontSize(10);
-    headers.forEach((header, index) => {
-      doc.text(header, 20 + index * 35, y);
-    });
-
-    // Draw schedule data
-    y += 10;
-    schedules.forEach((schedule, index) => {
-      doc.text(schedule.date, 20, y + index * 10);
-      doc.text(schedule.time, 55, y + index * 10);
-      doc.text(schedule.location, 90, y + index * 10);
-      doc.text(schedule.wasteType, 125, y + index * 10);
-      doc.text(schedule.status, 160, y + index * 10);
-    });
-
-    // Save the PDF
-    doc.save('waste-collection-schedules.pdf');
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="p-6"
-    >
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-2xl font-bold mb-6"
-      >
-        Waste Collection Schedule Management
-      </motion.h1>
-
-      {/* Time Statistics Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <TimeStatistics stats={timeStats} />
-      </motion.div>
-
-      {/* Create New Schedule Form */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-8 bg-gray-50 p-4 rounded-lg"
-      >
-        <motion.h2
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-xl font-semibold mb-4"
-        >
-          Create New Schedule
-        </motion.h2>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-5 gap-4"
-        >
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative"
-          >
-            <input
-              type="date"
-              name="date"
-              value={newSchedule.date}
-              onChange={handleInputChange}
-              className={`p-2 border rounded ${errors.date ? 'border-red-500' : ''}`}
-              placeholder="Date"
-            />
-            <AnimatePresence>
-              {errors.date && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
-                >
-                  {errors.date}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative"
-          >
-            <input
-              type="time"
-              name="time"
-              value={newSchedule.time}
-              onChange={handleInputChange}
-              className={`p-2 border rounded ${errors.time ? 'border-red-500' : ''}`}
-              placeholder="Time"
-            />
-            <AnimatePresence>
-              {errors.time && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
-                >
-                  {errors.time}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="relative"
-          >
-            <input
-              type="text"
-              name="location"
-              value={newSchedule.location}
-              onChange={handleInputChange}
-              className={`p-2 border rounded ${errors.location ? 'border-red-500' : ''}`}
-              placeholder="Location"
-            />
-            <AnimatePresence>
-              {errors.location && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
-                >
-                  {errors.location}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="relative"
-          >
-            <select
-              name="wasteType"
-              value={newSchedule.wasteType}
-              onChange={handleInputChange}
-              className={`p-2 border rounded ${errors.wasteType ? 'border-red-500' : ''}`}
-            >
-              <option value="">Select Waste Type</option>
-              <option value="Organic">Organic</option>
-              <option value="Recyclable">Recyclable</option>
-              <option value="Hazardous">Hazardous</option>
-              <option value="General">General</option>
-            </select>
-            <AnimatePresence>
-              {errors.wasteType && (
-                <motion.p
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-red-500 text-xs mt-1 absolute left-0 -bottom-5"
-                >
-                  {errors.wasteType}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </motion.div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleCreateSchedule}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-          >
-            Add Schedule
-          </motion.button>
-        </motion.div>
-      </motion.div>
-
-      {/* Schedule Table Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-8"
-      >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex justify-between items-center mb-4"
-        >
-          <motion.h2
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-xl font-semibold"
-          >
-            Collection Schedules
-          </motion.h2>
-          {/* Removed Generate Weekly Plan button */}
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <TimeTable
-            schedules={schedules}
-            onDelete={handleDeleteSchedule}
-            onEdit={handleEditSchedule}
-            onApprove={handleApproveSchedule}
-          />
-        </motion.div>
-      </motion.div>
-
-      {/* Bulk Operations */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-8 bg-white shadow-lg rounded-xl p-6"
-      >
-        <motion.h2
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-xl font-semibold text-gray-700 mb-4"
-        >
-          Bulk Operations
-        </motion.h2>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4"
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full bg-green-400 text-white px-4 py-3 rounded-lg hover:bg-green-500 focus:ring-2 focus:ring-green-300 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
-          >
-            Reschedule Pending
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
-          >
-            Assign Collection Teams
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const updatedSchedules = schedules.filter(s => s.status !== 'pending');
-              setSchedules(updatedSchedules);
-              updateStats(updatedSchedules);
-            }}
-            className="w-full bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
-          >
-            Cancel All Pending
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full bg-green-700 text-white px-4 py-3 rounded-lg hover:bg-green-800 focus:ring-2 focus:ring-green-600 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
-          >
-            Export Schedule
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleGeneratePDF}
-            className="w-full bg-green-800 text-white px-4 py-3 rounded-lg hover:bg-green-900 focus:ring-2 focus:ring-green-700 focus:outline-none transition-all duration-300 ease-in-out shadow-md"
-          >
-            Generate PDF
-          </motion.button>
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
 };
 
 export default TimeManagementOverview;

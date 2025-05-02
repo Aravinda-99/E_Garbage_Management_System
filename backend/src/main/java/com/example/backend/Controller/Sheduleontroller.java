@@ -18,6 +18,7 @@ public class Sheduleontroller {
 
     @PostMapping(path = "/saved")
     public String save(@RequestBody ScheduleDTO scheduleDTO) {
+        // Supports wasteType values: ORGANIC, RECYCLABLE, HAZARDOUS, GENERAL, MIXED, GLASS, ELECTRONIC, PAPER
         String message = scheduleService.saveSchedule(scheduleDTO);
         return message;
     }
@@ -39,12 +40,9 @@ public class Sheduleontroller {
             @PathVariable Long scheduleId,
             @RequestBody ScheduleDTO updateDTO
     ) {
+        // Supports wasteType values: ORGANIC, RECYCLABLE, HAZARDOUS, GENERAL, MIXED, GLASS, ELECTRONIC, PAPER
         updateDTO.setId(scheduleId); // Set the ID from path variable
         ScheduleDTO updatedSchedule = scheduleService.updateSchedule(updateDTO);
         return ResponseEntity.ok(updatedSchedule);
     }
-
-
-
-
 }
