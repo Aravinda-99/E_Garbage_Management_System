@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, RefreshCw } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // ✅ Correct import
 
 const FeedbackTable = ({ onDelete, refreshTrigger }) => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -50,12 +52,41 @@ const FeedbackTable = ({ onDelete, refreshTrigger }) => {
       .finally(() => setLoading(false));
   };
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('User Feedback Report', 14, 20);
+
+    const tableColumn = ["ID", "Name", "Rating", "Comment"];
+    const tableRows = [];
+
+    filteredFeedbacks.forEach(feedback => {
+      const rowData = [
+        feedback.feedbackId,
+        feedback.username,
+        `${feedback.rating} / 5`,
+        feedback.message
+      ];
+      tableRows.push(rowData);
+    });
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [67, 160, 71] },
+    });
+
+    doc.save('feedback_report.pdf');
+  };
+
   const renderStars = (rating) => (
     <div className="flex">
       {[...Array(5)].map((_, i) => (
-        <svg 
-          key={i} 
-          className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+        <svg
+          key={i}
+          className={`w-4 h-4 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
           viewBox="0 0 24 24"
         >
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -82,12 +113,18 @@ const FeedbackTable = ({ onDelete, refreshTrigger }) => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border border-green-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
           />
-          <button 
+          <button
             onClick={handleRefresh}
             className="flex items-center gap-1 bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white py-1.5 px-4 rounded-md shadow transition-all duration-200"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
+          </button>
+          <button
+            onClick={downloadPDF}
+            className="flex items-center gap-1 bg-gradient-to-r from-teal-400 to-teal-600 hover:from-teal-500 hover:to-teal-700 text-white py-1.5 px-4 rounded-md shadow transition-all duration-200"
+          >
+            Download PDF
           </button>
         </div>
       </div>
@@ -98,7 +135,7 @@ const FeedbackTable = ({ onDelete, refreshTrigger }) => {
         </div>
       )}
 
-      <div 
+      <div
         className="overflow-auto rounded-lg border border-gray-200 shadow-lg custom-scrollbar"
         style={{ maxHeight: '500px' }}
         onScroll={handleScroll}
@@ -124,8 +161,8 @@ const FeedbackTable = ({ onDelete, refreshTrigger }) => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredFeedbacks.map((feedback, index) => (
-                <tr 
-                  key={feedback.feedbackId} 
+                <tr
+                  key={feedback.feedbackId}
                   className={`transition-all duration-150 ${index % 2 === 0 ? 'bg-green-50' : 'bg-white'} hover:bg-green-100`}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">{feedback.feedbackId}</td>
