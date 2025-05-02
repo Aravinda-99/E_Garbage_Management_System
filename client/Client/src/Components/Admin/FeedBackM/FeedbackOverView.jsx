@@ -175,58 +175,6 @@ function FeedbackDashboard() {
           ))}
         </motion.div>
 
-        {/* Charts Section - Only Response Performance remains */}
-        <motion.div 
-          className="grid grid-cols-1 gap-5 mb-8"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <motion.div 
-            className="bg-white rounded-lg border border-gray-200 p-6"
-            whileHover={{ y: -5, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-semibold text-gray-900">Response Performance</h2>
-              <motion.button 
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                View Details
-              </motion.button>
-            </div>
-            <div className="space-y-3">
-              {[
-                {
-                  category: "Critical Issues",
-                  avgTime: "2.5 hours",
-                  target: "3 hours",
-                  isWithinTarget: true,
-                  progress: 85
-                },
-                {
-                  category: "General Feedback",
-                  avgTime: "12 hours",
-                  target: "24 hours",
-                  isWithinTarget: true,
-                  progress: 50
-                },
-                {
-                  category: "Feature Requests",
-                  avgTime: "36 hours",
-                  target: "48 hours",
-                  isWithinTarget: true,
-                  progress: 75
-                }
-              ].map((item, index) => (
-                <ResponseTimeItem key={index} {...item} delay={index * 0.1} />
-              ))}
-            </div>
-          </motion.div>
-        </motion.div>
-
         {/* Feedback Table Section */}
         <motion.div
           className="bg-white rounded-lg border border-gray-200 overflow-hidden"
@@ -329,48 +277,6 @@ function StatCard({ title, value, change, isIncrease, icon, bgColor, delay = 0, 
           </span>
         )}
         <span className="ml-2 text-xs text-gray-500">vs last period</span>
-      </div>
-    </motion.div>
-  );
-}
-
-function ResponseTimeItem({ category, avgTime, target, isWithinTarget, progress, delay = 0 }) {
-  return (
-    <motion.div 
-      className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay }}
-      whileHover={{ scale: 1.01 }}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
-          <motion.div whileHover={{ rotate: 180 }}>
-            <Clock className="h-5 w-5 text-gray-400 mr-3" />
-          </motion.div>
-          <div>
-            <p className="text-sm font-medium text-gray-900">{category}</p>
-            <p className="text-xs text-gray-500">Target: {target}</p>
-          </div>
-        </div>
-        <div className="flex items-center">
-          <span className="text-sm font-medium text-gray-900 mr-2">{avgTime}</span>
-          <motion.div whileHover={{ scale: 1.2 }}>
-            {isWithinTarget ? (
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-            ) : (
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            )}
-          </motion.div>
-        </div>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-        <motion.div 
-          className={`h-1.5 rounded-full ${isWithinTarget ? 'bg-green-500' : 'bg-red-500'}`}
-          initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 1, delay: delay + 0.3 }}
-        />
       </div>
     </motion.div>
   );
