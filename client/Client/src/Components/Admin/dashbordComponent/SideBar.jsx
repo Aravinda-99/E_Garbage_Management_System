@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   IconDashboard, 
   IconBoxSeam, 
@@ -14,27 +15,52 @@ import {
   IconGitPullRequest
 } from '@tabler/icons-react';
 
-const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMenuItemClick }) => {
+const SideBar = ({ onToggle, onMenuItemClick }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [darkMode, setDarkMode] = useState(true); // Default to dark mode
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
+  const navigate = useNavigate();
+
+  // Load user data from localStorage on component mount
+  useEffect(() => {
+    // Try to get user data from localStorage
+    const userDataString = localStorage.getItem('userData');
+    
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString);
+        // Set user name from firstName and lastName if available
+        const firstName = userData.userFirstName || '';
+        const lastName = userData.userLastName || '';
+        setUserName(firstName && lastName ? `${firstName} ${lastName}` : userData.userName || 'User');
+        
+        // Check roles and set user role
+        if (userData.role && userData.role.some(role => role.roleName === 'ADMIN' || role.roleName === 'Admin')) {
+          setUserRole('Administrator');
+        } else {
+          setUserRole('User');
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        setUserName('User');
+        setUserRole('Guest');
+      }
+    } else {
+      // Fallback if no user data found
+      setUserName('User');
+      setUserRole('Guest');
+    }
+  }, []);
 
   const menuItems = [
     { icon: IconDashboard, label: 'Dashboard' },
     { icon: IconUser, label: 'User Management' },
     { icon: IconGitPullRequest, label: 'Request Management' },
-
     { icon: IconBoxSeam, label: 'Time Schedules' },
-    // { icon: IconChartBar, label: 'Reports' },
-    // { icon: IconBellRinging, label: 'Notifications' },
-    // { icon: IconSettings, label: 'Settings' },
-
     { icon: IconGitPullRequest, label: 'FeedBack M' },
     { icon: IconGitPullRequest, label: 'Complain M' },
     { icon: IconBoxSeam, label: 'BinLocations' },
-    // { icon: IconChartBar, label: 'Reports' },
-    // { icon: IconBellRinging, label: 'Notifications' },
-    // { icon: IconSettings, label: 'Settings' }
-
   ];
 
   const toggleSidebar = () => {
@@ -47,6 +73,29 @@ const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMen
 
   const handleMenuItemClick = (label) => {
     onMenuItemClick(label); // Notify parent component about menu item click
+  };
+
+  // Handle logout function
+  const handleLogout = () => {
+    // Clear JWT token
+    localStorage.removeItem('jwtToken');
+    
+    // Clear any user data
+    localStorage.removeItem('userData');
+    
+    // Redirect to login page
+    navigate('/login');
+  };
+
+  // Get user initials for the avatar
+  const getInitials = () => {
+    if (!userName || userName === 'User') return 'U';
+    
+    const nameParts = userName.split(' ');
+    if (nameParts.length >= 2) {
+      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+    }
+    return userName[0]?.toUpperCase() || 'U';
   };
 
   return (
@@ -85,7 +134,7 @@ const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMen
       `}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center text-white font-bold">
-            AM
+            {getInitials()}
           </div>
           <div className={`${collapsed ? 'hidden' : 'block'} transition-all duration-300`}>
             <h2 className="font-semibold">{userName}</h2>
@@ -146,6 +195,7 @@ const SideBar = ({ userName = "Alex Morgan", userRole = "Admin", onToggle, onMen
         </button>
         
         <button 
+          onClick={handleLogout}
           className={`
             flex items-center gap-3 
             rounded-lg p-3 w-full

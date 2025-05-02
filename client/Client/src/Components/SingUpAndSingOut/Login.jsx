@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Leaf, Check } from 'lucide-react';
+import axios from 'axios';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -13,69 +14,91 @@ const Login = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
 
+  // Validate that email and password are provided and email format is correct
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle field changes (including checkbox)
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    setErrors(prev => ({ ...prev, [name]: '' }));
+    setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
+  // On form submit, validate and call the JWT authentication endpoint.
+  // On success, store the token with Bearer prefix, display the modal, then navigate based on role.
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setIsLoading(true);
     try {
-      // Check for admin credentials
-      if (formData.email === 'admin@gmail.com' && formData.password === 'Admin@1234') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Admin login successful:', formData);
-        setShowSuccessModal(true);
-        setTimeout(() => {
-          setShowSuccessModal(false);
-          navigate('/AdminDashboard'); // Navigate to AdminDashboard
-        }, 2000);
-      } 
-      // Check for regular user credentials
-      else if (formData.email === 'user@gmail.com' && formData.password === 'User@1234') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('User login successful:', formData);
-        setShowSuccessModal(true);
-        setTimeout(() => {
-          setShowSuccessModal(false);
-          navigate('/'); // Navigate to home for regular users
-        }, 2000);
-      } 
-      else {
-        throw new Error('Invalid credentials');
-      }
+      // Prepare payload: map email to username required by backend
+      const payload = {
+        username: formData.email,
+        password: formData.password
+      };
+
+      // Call the authentication endpoint
+      const response = await axios.post('http://localhost:8045/authentication', payload);
+      const data = response.data;
+
+      // Save the JWT token with Bearer prefix
+      localStorage.setItem('jwtToken', `Bearer ${data.jwtToken}`);
+      console.log('Login successful for user:', data.user);
+      
+      // Debug: Log the roles to verify the response structure
+      console.log('User role:', data.user.role);
+
+      // Display success modal and redirect based on role
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        
+        // Check if user has the ADMIN or Admin role
+        // We need to check if the role array contains an object with roleName of "ADMIN" or "Admin"
+        const isAdmin = data.user.role && data.user.role.some(
+          role => role.roleName === 'ADMIN' || role.roleName === 'Admin'
+        );
+        
+        console.log('Is admin?', isAdmin);
+        
+        if (isAdmin) {
+          navigate('/AdminDashboard');
+        } else {
+          navigate('/');
+        }
+      }, 2000);
     } catch (error) {
+      console.error('Login error:', error);
       setErrors({ submit: 'Login failed. Please check your credentials.' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Rest of the component remains the same
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row relative">
         {/* Image Side */}
-        <div 
+        <div
           className="w-full md:w-1/2 bg-cover bg-center hidden md:block"
-          style={{ 
-            backgroundImage: 'url("https://img.freepik.com/free-photo/beautiful-volunteer-woman-posing-city-park_1262-20973.jpg?uid=R119415580&ga=GA1.1.1625335464.1726891998&semt=ais_hybrid")',
+          style={{
+            backgroundImage:
+              'url("https://img.freepik.com/free-photo/beautiful-volunteer-woman-posing-city-park_1262-20973.jpg")',
             minHeight: '400px'
           }}
         />
@@ -84,10 +107,7 @@ const Login = () => {
         <div className="w-full md:w-1/2 p-6">
           <div className="text-center mb-6">
             <Link to="/" className="flex items-center justify-center group">
-              <Leaf
-                size={28}
-                className="text-green-600 transition-transform duration-500 group-hover:rotate-90 group-hover:scale-110"
-              />
+              <Leaf size={28} className="text-green-600 transition-transform duration-500 group-hover:rotate-90 group-hover:scale-110" />
             </Link>
             <h2 className="text-2xl font-bold text-gray-900 mt-4">Welcome Back</h2>
             <p className="text-gray-600 mt-1">Sign in to continue</p>
@@ -109,8 +129,9 @@ const Login = () => {
                   placeholder="Email Address"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 rounded-md border ${errors.email ? 'border-red-300' : 'border-gray-300'} 
-                    focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
+                  className={`w-full px-3 py-2 rounded-md border ${
+                    errors.email ? 'border-red-300' : 'border-gray-300'
+                  } focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
               </div>
@@ -123,8 +144,9 @@ const Login = () => {
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 rounded-md border ${errors.password ? 'border-red-300' : 'border-gray-300'} 
-                    focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
+                  className={`w-full px-3 py-2 rounded-md border ${
+                    errors.password ? 'border-red-300' : 'border-gray-300'
+                  } focus:border-green-600 focus:ring focus:ring-green-200 focus:ring-opacity-50`}
                 />
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
               </div>
@@ -152,9 +174,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2 px-4 rounded-md bg-green-600 text-white font-medium 
-                hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 
-                disabled:bg-green-400 disabled:cursor-not-allowed"
+              className="w-full py-2 px-4 rounded-md bg-green-600 text-white font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-green-400 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -198,7 +218,7 @@ const Login = () => {
           </form>
         </div>
 
-        {/* Success Popup */}
+        {/* Success Modal */}
         {showSuccessModal && (
           <div className="absolute inset-0 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center z-10 animate-fade-in">
             <div className="flex flex-col items-center gap-3">
