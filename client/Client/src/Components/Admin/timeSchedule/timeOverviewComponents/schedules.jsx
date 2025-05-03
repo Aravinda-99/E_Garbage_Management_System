@@ -1,5 +1,5 @@
 import React from 'react';
-import TimeTable from './TimeTable';
+import TimeTable from './timeTable';
 
 const App = () => {
   const [schedules, setSchedules] = React.useState([

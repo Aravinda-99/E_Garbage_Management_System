@@ -22,6 +22,11 @@ public class ScheduleServiceIMPL implements ScheduleService {
 
     @Override
     public String saveSchedule(ScheduleDTO scheduleDTO) {
+        // Validate wasteType
+        if (scheduleDTO.getWasteType() == null) {
+            throw new IllegalArgumentException("wasteType is required");
+        }
+
         Schedule schedule = new Schedule(
                 scheduleDTO.getId(),
                 scheduleDTO.getDate(),
@@ -60,6 +65,11 @@ public class ScheduleServiceIMPL implements ScheduleService {
             throw new RuntimeException("Schedule with ID " + scheduleDTO.getId() + " not found");
         }
 
+        // Validate wasteType
+        if (scheduleDTO.getWasteType() == null) {
+            throw new IllegalArgumentException("wasteType is required");
+        }
+
         // Save the updated schedule
         Schedule schedule = modelMapper.map(scheduleDTO, Schedule.class);
         Schedule savedSchedule = scheduleRepo.save(schedule);
@@ -67,6 +77,4 @@ public class ScheduleServiceIMPL implements ScheduleService {
         // Return the updated schedule as DTO
         return modelMapper.map(savedSchedule, ScheduleDTO.class);
     }
-
-
 }

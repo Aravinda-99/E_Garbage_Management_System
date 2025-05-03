@@ -1,13 +1,12 @@
 package com.example.backend.entity.enums;
 
 public enum WasteType {
-
     ORGANIC,
-    PLASTIC,
-    PAPER,
-    GLASS,
-    METAL,
-    ELECTRONIC,
+    RECYCLABLE,
     HAZARDOUS,
-    MIXED;
+    GENERAL,
+    MIXED,
+    GLASS,
+    ELECTRONIC,
+    PAPER
 }

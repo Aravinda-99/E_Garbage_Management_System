@@ -42,4 +42,5 @@ public class Schedule {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private WasteType wasteType;
+
 }
