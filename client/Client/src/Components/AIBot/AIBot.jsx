@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, Camera, Send, X, ChevronUp, Sparkles, Info, Clock } from 'lucide-react';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const AIBot = () => {
   // State management
@@ -12,9 +13,15 @@ const AIBot = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
+  
+  // API Keys
   const imaggaApiKey = 'acc_744bec21e1455ed';
   const imaggaApiSecret = 'aa1db6c7a0995bf46955732d6aca8543';
-  const openRouterApiKey = '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';
+  
+  // Initialize Google Gemini AI with API version 1.0
+  const genAI = new GoogleGenerativeAI("AIzaSyCl3oZMgnx6hahBY584ZcDzcMvj6r9beuI");
+  // Use gemini-1.0-pro instead of gemini-pro as the model name
+  const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro-001" });
 
   // Scroll to bottom of chat when new messages are added
   useEffect(() => {
@@ -23,33 +30,12 @@ const AIBot = () => {
     }
   }, [messages]);
 
-  // Helper function to upload image to Imgur and get a public URL
-  const uploadToImgur = async (base64Image) => {
-    const IMGUR_CLIENT_ID = 'YOUR_IMGUR_CLIENT_ID'; // <-- Replace with your Imgur Client ID
-    const response = await fetch('https://api.imgur.com/3/image', {
-      method: 'POST',
-      headers: {
-        Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: base64Image.split(',')[1], // Remove the data:image/...;base64, part
-        type: 'base64',
-      }),
-    });
-    const data = await response.json();
-    if (data.success && data.data.link) {
-      return data.data.link;
-    } else {
-      throw new Error('Failed to upload image to Imgur');
-    }
-  };
-
-  // Get AI response from OpenRouter or Imagga
+  // Get AI response from Google Gemini and Imagga
   const getAIResponse = async (question, imageData = null) => {
     setIsProcessing(true);
     try {
       let response = '';
+      
       if (imageData) {
         // Use Imagga API for image analysis
         const formData = new FormData();
@@ -65,7 +51,7 @@ const AIBot = () => {
         });
 
         if (!imaggaResponse.ok) {
-          throw new Error('Failed to analyze image');
+          throw new Error('Failed to analyze image with Imagga');
         }
 
         const imaggaData = await imaggaResponse.json();
@@ -78,70 +64,48 @@ const AIBot = () => {
           .map(tag => tag.tag.en)
           .join(', ');
 
-        response = '**Image Analysis Results:**\n';
+        response = '*Image Analysis Results:*\n';
         response += `Detected items: ${relevantTags}\n\n`;
         
-        // Get recycling information using OpenRouter
-        const recyclingPrompt = `Based on these detected items: ${relevantTags}, provide brief recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method`;
-        
-        const textResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'HTTP-Referer': 'https://wastewise.com',
-            'X-Title': 'WasteWise AI Assistant',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a recycling expert. Provide concise, practical guidance about recycling and waste disposal."
-              },
-              {
-                role: 'user',
-                content: recyclingPrompt
-              }
-            ]
-          })
-        });
+        // Use Gemini AI for detailed analysis with image
+        // For vision capabilities, we need to update this code to use FileData API properly
+        // For now, let's use text-only response based on the tags
+        try {
+          const prompt = `Based on these detected items: ${relevantTags}, provide detailed recycling guidance including:
+1. Material type
+2. Recyclability
+3. Best disposal method
+4. Environmental impact
+5. Alternative uses or upcycling suggestions`;
 
-        const textData = await textResponse.json();
-        response += textData.choices?.[0]?.message?.content || "I apologize, but I couldn't generate recycling guidance. Please try again.";
+          const result = await model.generateContent(prompt);
+          const textResult = await result.response.text();
+          response += textResult;
+        } catch (geminiError) {
+          console.error('Gemini API error:', geminiError);
+          response += "I couldn't get detailed recycling information at this time. Please try again later.";
+        }
       } else {
-        // For text questions, use OpenRouter
-        const textResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'HTTP-Referer': 'https://wastewise.com',
-            'X-Title': 'WasteWise AI Assistant',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a helpful recycling assistant. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative."
-              },
-              {
-                role: 'user',
-                content: question
-              }
-            ]
-          })
-        });
-        const textData = await textResponse.json();
-        response = textData.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+        // For text questions, use Gemini AI
+        try {
+          const prompt = `You are a recycling expert. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative.
+          
+${question}`;
+          
+          const result = await model.generateContent(prompt);
+          response = await result.response.text();
+        } catch (geminiError) {
+          console.error('Gemini API error:', geminiError);
+          response = "I'm sorry, I couldn't process your request at the moment. Please try again later.";
+        }
       }
+      
       setMessages(prev => [...prev, { sender: 'bot', content: response }]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       setMessages(prev => [...prev, {
         sender: 'bot',
-        content: 'I apologize, but I encountered an error analyzing the image. Please try again later.'
+        content: 'I apologize, but I encountered an error processing your request. Please try again later.'
       }]);
     } finally {
       setIsProcessing(false);
@@ -203,7 +167,7 @@ const AIBot = () => {
     <div className="fixed bottom-6 right-6 z-50 font-sans">
       {/* Floating Action Button */}
       <button
-        className={`${isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-gradient-to-br bg-emerald-900 to-teal-600 hover:from-emerald-600 hover:to-teal-700'} text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center`}
+        className={`${isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-gradient-to-br from-emerald-900 to-teal-600 hover:from-emerald-600 hover:to-teal-700'} text-white rounded-full p-4 shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center`}
         onClick={() => setIsOpen(!isOpen)}
         style={{
           width: '56px',
@@ -223,7 +187,7 @@ const AIBot = () => {
           style={{ height: '32rem' }}>
 
           {/* Chat Header */}
-          <div className="bg-gradient-to-r bg-emerald-900 to-teal-600 text-white p-4 flex items-center justify-between rounded-t-2xl">
+          <div className="bg-gradient-to-r from-emerald-900 to-teal-600 text-white p-4 flex items-center justify-between rounded-t-2xl">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-white/20 rounded-full">
                 <Leaf size={20} className="text-white" />
@@ -269,7 +233,7 @@ const AIBot = () => {
                     </div>
                   )}
                   <div className="whitespace-pre-line text-sm">
-                    {msg.content.split('**').map((text, i) =>
+                    {msg.content.split('').map((text, i) =>
                       i % 2 === 1 ? (
                         <span key={i} className="font-semibold">{text}</span>
                       ) : (
@@ -279,11 +243,11 @@ const AIBot = () => {
                   </div>
 
                   {msg.sender === 'bot' && (
-                    <div className="mt-3 pt-3 border-t border-white/20 flex flex-wrap gap-2">
-                      <button className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded-full flex items-center transition-colors">
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+                      <button className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full flex items-center transition-colors">
                         <Info size={12} className="mr-1" /> Learn More
                       </button>
-                      <button className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded-full flex items-center transition-colors">
+                      <button className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full flex items-center transition-colors">
                         <Clock size={12} className="mr-1" /> Centers
                       </button>
                     </div>
