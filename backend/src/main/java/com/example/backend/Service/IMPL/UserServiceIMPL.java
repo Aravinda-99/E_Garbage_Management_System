@@ -58,7 +58,7 @@ public class UserServiceIMPL implements UserService {
         // Create admin user if it doesn't exist
         if (!userRepo.existsById("admin123")) {
             User user = new User();
-            user.setUserName("admin123");
+            user.setUserName("admin123@gmail.com");
             user.setUserPassword(getEncodedPassword("admin@123"));
             user.setUserFirstName("Aravinda");
             user.setUserLastName("Varaj");
@@ -73,7 +73,7 @@ public class UserServiceIMPL implements UserService {
         // Create regular user if it doesn't exist
         if (!userRepo.existsById("user123")) {
             User user = new User();
-            user.setUserName("user123");
+            user.setUserName("user123@gmail.com");
             user.setUserPassword(getEncodedPassword("user@123"));
             user.setUserFirstName("viraj");
             user.setUserLastName("Subhasingha");
