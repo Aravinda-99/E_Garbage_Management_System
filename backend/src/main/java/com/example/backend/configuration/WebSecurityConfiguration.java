@@ -35,16 +35,14 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
                 .authorizeRequests()
-                // Secure only the login endpoint
-                .antMatchers("/authentication").authenticated()
-                // Permit all other requests
+                // Allow access to all endpoints without authentication
                 .anyRequest().permitAll()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        // Apply JWT filter only for secured endpoints
+        // JWT filter is still configured but won't block any requests
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
