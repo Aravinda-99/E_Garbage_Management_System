@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, Camera, Send, X, ChevronUp, Sparkles, Info, Clock } from 'lucide-react';
+import { GoogleGenAI, createUserContent, createPartFromUri } from "@google/genai";
 
 const AIBot = () => {
   // State management
@@ -12,9 +13,15 @@ const AIBot = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
+  
+  // API Keys
   const imaggaApiKey = 'acc_744bec21e1455ed';
   const imaggaApiSecret = 'aa1db6c7a0995bf46955732d6aca8543';
-  const openRouterApiKey = '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';
+  
+  // Initialize Google Gemini AI
+  const ai = new GoogleGenAI({ 
+    apiKey: "AIzaSyCl3oZMgnx6hahBY584ZcDzcMvj6r9beuI" 
+  });
 
   // Scroll to bottom of chat when new messages are added
   useEffect(() => {
@@ -23,33 +30,12 @@ const AIBot = () => {
     }
   }, [messages]);
 
-  // Helper function to upload image to Imgur and get a public URL
-  const uploadToImgur = async (base64Image) => {
-    const IMGUR_CLIENT_ID = 'YOUR_IMGUR_CLIENT_ID'; // <-- Replace with your Imgur Client ID
-    const response = await fetch('https://api.imgur.com/3/image', {
-      method: 'POST',
-      headers: {
-        Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        image: base64Image.split(',')[1], // Remove the data:image/...;base64, part
-        type: 'base64',
-      }),
-    });
-    const data = await response.json();
-    if (data.success && data.data.link) {
-      return data.data.link;
-    } else {
-      throw new Error('Failed to upload image to Imgur');
-    }
-  };
-
-  // Get AI response from OpenRouter or Imagga
+  // Get AI response from Google Gemini and Imagga
   const getAIResponse = async (question, imageData = null) => {
     setIsProcessing(true);
     try {
       let response = '';
+      
       if (imageData) {
         // Use Imagga API for image analysis
         const formData = new FormData();
@@ -65,7 +51,7 @@ const AIBot = () => {
         });
 
         if (!imaggaResponse.ok) {
-          throw new Error('Failed to analyze image');
+          throw new Error('Failed to analyze image with Imagga');
         }
 
         const imaggaData = await imaggaResponse.json();
@@ -81,67 +67,40 @@ const AIBot = () => {
         response = '**Image Analysis Results:**\n';
         response += `Detected items: ${relevantTags}\n\n`;
         
-        // Get recycling information using OpenRouter
-        const recyclingPrompt = `Based on these detected items: ${relevantTags}, provide brief recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method`;
-        
-        const textResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'HTTP-Referer': 'https://wastewise.com',
-            'X-Title': 'WasteWise AI Assistant',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a recycling expert. Provide concise, practical guidance about recycling and waste disposal."
-              },
-              {
-                role: 'user',
-                content: recyclingPrompt
-              }
-            ]
-          })
+        // Use Gemini AI for detailed analysis
+        const myfile = await ai.files.upload({
+          file: blob,
+          config: { mimeType: blob.type }
         });
 
-        const textData = await textResponse.json();
-        response += textData.choices?.[0]?.message?.content || "I apologize, but I couldn't generate recycling guidance. Please try again.";
-      } else {
-        // For text questions, use OpenRouter
-        const textResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'HTTP-Referer': 'https://wastewise.com',
-            'X-Title': 'WasteWise AI Assistant',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a helpful recycling assistant. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative."
-              },
-              {
-                role: 'user',
-                content: question
-              }
-            ]
-          })
+        const geminiResponse = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: createUserContent([
+            createPartFromUri(myfile.uri, myfile.mimeType),
+            `Based on these detected items: ${relevantTags}, provide detailed recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method\n4. Environmental impact\n5. Alternative uses or upcycling suggestions`
+          ])
         });
-        const textData = await textResponse.json();
-        response = textData.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+        
+        response += geminiResponse.text;
+      } else {
+        // For text questions, use Gemini AI
+        const geminiResponse = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: createUserContent([
+            "You are a recycling expert. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative.",
+            question
+          ])
+        });
+        
+        response = geminiResponse.text;
       }
+      
       setMessages(prev => [...prev, { sender: 'bot', content: response }]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       setMessages(prev => [...prev, {
         sender: 'bot',
-        content: 'I apologize, but I encountered an error analyzing the image. Please try again later.'
+        content: 'I apologize, but I encountered an error processing your request. Please try again later.'
       }]);
     } finally {
       setIsProcessing(false);
