@@ -11,9 +11,9 @@ const TimeManagementOverview = () => {
   const [schedules, setSchedules] = useState([]);
   const [timeStats, setTimeStats] = useState({
     scheduled: 0,
-    completed: 0,
-    pending: 0,
     locations: 0,
+    pastDays: 0,
+    presentDays: 0,
   });
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -36,6 +36,10 @@ const TimeManagementOverview = () => {
     wasteType: '',
     duplicate: '',
   });
+
+  // Current date for validation (May 3, 2025, as per system context)
+  const today = new Date('2025-05-03');
+  today.setHours(0, 0, 0, 0);
 
   // Load schedules from backend on component mount
   useEffect(() => {
@@ -127,6 +131,13 @@ const TimeManagementOverview = () => {
       return;
     }
 
+    // Validate date: block past dates, allow present or future
+    const selectedDate = new Date(newSchedule.date);
+    if (selectedDate < today) {
+      alert('Cannot create a schedule for a past date.');
+      return;
+    }
+
     // Check for duplicates
     if (checkForDuplicate(newSchedule)) {
       setErrors((prev) => ({
@@ -187,15 +198,23 @@ const TimeManagementOverview = () => {
   const updateStats = (updatedSchedules) => {
     setTimeStats({
       scheduled: updatedSchedules.length,
-      completed: updatedSchedules.filter((s) => s.status === 'completed').length,
-      pending: updatedSchedules.filter((s) => s.status === 'pending').length,
       locations: new Set(updatedSchedules.map((s) => s.location)).size,
+      pastDays: updatedSchedules.filter((s) => new Date(s.date) < today).length,
+      presentDays: updatedSchedules.filter((s) => new Date(s.date) >= today).length,
     });
   };
 
   // UPDATE: Edit existing schedule
   const handleEditSchedule = async (updatedSchedule) => {
     setApiError('');
+
+    // Validate date: block past dates, allow present or future
+    const selectedDate = new Date(updatedSchedule.date);
+    if (selectedDate < today) {
+      alert('Cannot update a schedule to a past date.');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -253,10 +272,16 @@ const TimeManagementOverview = () => {
   };
 
   // UPDATE: Approve schedule
-  // Note: Based on your controller, there doesn't seem to be a direct endpoint for status updates
-  // You might need to implement this in the backend or use the update endpoint
   const handleApproveSchedule = async (schedule) => {
     setApiError('');
+
+    // Validate date: block past dates, allow present or future
+    const selectedDate = new Date(schedule.date);
+    if (selectedDate < today) {
+      alert('Cannot approve a schedule for a past date.');
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -305,33 +330,61 @@ const TimeManagementOverview = () => {
     setErrors((prev) => ({ ...prev, duplicate: '' }));
   };
 
-  // Bulk action: Cancel all pending schedules
-  // Note: This endpoint doesn't exist in your controller, so you'd need to add it
-  const handleCancelAllPending = async () => {
+  // State for bulk operation confirmation
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [bulkAction, setBulkAction] = useState(null);
+
+  // Bulk action handlers
+  const handleBulkDeletePast = () => {
+    setBulkAction('past');
+    setShowBulkConfirm(true);
+  };
+
+  const handleBulkDeletePresentFuture = () => {
+    setBulkAction('presentFuture');
+    setShowBulkConfirm(true);
+  };
+
+  const handleBulkDeleteAll = () => {
+    setBulkAction('all');
+    setShowBulkConfirm(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    if (!bulkAction) return;
+
+    setLoading(true);
     setApiError('');
     try {
-      setLoading(true);
-      
-      // You'll need to add this endpoint to your controller
-      // For now, use individual deletes for pending schedules
-      const pendingSchedules = schedules.filter(s => s.status === 'pending');
-      
-      // Delete each pending schedule one by one
-      for (const schedule of pendingSchedules) {
+      let schedulesToDelete = [];
+      if (bulkAction === 'past') {
+        schedulesToDelete = schedules.filter(s => new Date(s.date) < today);
+      } else if (bulkAction === 'presentFuture') {
+        schedulesToDelete = schedules.filter(s => new Date(s.date) >= today);
+      } else if (bulkAction === 'all') {
+        schedulesToDelete = [...schedules];
+      }
+
+      for (const schedule of schedulesToDelete) {
         await axios.delete(`/api/v1/shedule/delete-schedule/${schedule.id}`);
       }
-      
-      // Update local state
-      const updatedSchedules = schedules.filter((s) => s.status !== 'pending');
+
+      const updatedSchedules = schedules.filter(s => !schedulesToDelete.some(del => del.id === s.id));
       setSchedules(updatedSchedules);
       updateStats(updatedSchedules);
-      
     } catch (error) {
-      console.error('Error cancelling pending schedules:', error);
-      setApiError(`Failed to cancel pending schedules: ${error.response?.data || error.message}`);
+      console.error(`Error deleting ${bulkAction} schedules:`, error);
+      setApiError(`Failed to delete ${bulkAction} schedules: ${error.response?.data || error.message}`);
     } finally {
       setLoading(false);
+      setShowBulkConfirm(false);
+      setBulkAction(null);
     }
+  };
+
+  const cancelBulkDelete = () => {
+    setShowBulkConfirm(false);
+    setBulkAction(null);
   };
 
   return (
@@ -401,6 +454,10 @@ const TimeManagementOverview = () => {
               <option value="RECYCLABLE">RECYCLABLE</option>
               <option value="HAZARDOUS">HAZARDOUS</option>
               <option value="GENERAL">GENERAL</option>
+              <option value="MIXED">MIXED</option>
+              <option value="GLASS">GLASS</option>
+              <option value="ELECTRONIC">ELECTRONIC</option>
+              <option value="PAPER">PAPER</option>
             </select>
             {errors.wasteType && <p className="text-red-500 text-sm mt-1">{errors.wasteType}</p>}
           </div>
@@ -422,12 +479,6 @@ const TimeManagementOverview = () => {
       <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Collection Schedules</h2>
-          <button 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-blue-300"
-            disabled={loading}
-          >
-            Generate Weekly Plan
-          </button>
         </div>
         {loading ? (
           <p className="text-gray-500">Loading schedules...</p>
@@ -447,32 +498,52 @@ const TimeManagementOverview = () => {
         <h2 className="text-xl font-semibold mb-4">Bulk Operations</h2>
         <div className="flex flex-wrap gap-3">
           <button 
+            onClick={handleBulkDeletePast}
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-yellow-300"
             disabled={loading}
           >
-            Reschedule Pending
+            Delete All Past Schedules
           </button>
           <button 
+            onClick={handleBulkDeletePresentFuture}
             className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-purple-300"
             disabled={loading}
           >
-            Assign Collection Teams
+            Delete All Present and Future Schedules
           </button>
           <button
-            onClick={handleCancelAllPending}
+            onClick={handleBulkDeleteAll}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-red-300"
             disabled={loading}
           >
-            Cancel All Pending
-          </button>
-          <button 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-indigo-300"
-            disabled={loading}
-          >
-            Export Schedule
+            Delete All Schedules
           </button>
         </div>
       </div>
+
+      {/* Bulk Confirmation Popup */}
+      {showBulkConfirm && (
+        <div className="fixed inset-0 backdrop-filter backdrop-blur-md bg-white bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
+            <p className="mb-4">Are you sure you want to delete all {bulkAction === 'past' ? 'past' : bulkAction === 'presentFuture' ? 'present and future' : 'all'} schedules?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={cancelBulkDelete}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

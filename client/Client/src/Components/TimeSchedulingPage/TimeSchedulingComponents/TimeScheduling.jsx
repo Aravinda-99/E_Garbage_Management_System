@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calendar, Clock, Trash2, Recycle as RecyclingIcon, BatteryCharging, Leaf, Bell, Filter, ChevronLeft, ChevronRight, AlertCircle, MapPin, Truck } from 'lucide-react';
+import { Clock, Trash2, Recycle as RecyclingIcon, BatteryCharging, Leaf, Bell, Filter, ChevronLeft, ChevronRight, AlertCircle, MapPin, Truck, Search } from 'lucide-react';
 import { Button } from '../TimeSchedulingComponents/ui/button';
 import { Input } from '../TimeSchedulingComponents/ui/input';
 import { cn } from '../TimeSchedulingComponents/lib/utils';
@@ -16,48 +16,157 @@ import {
     SelectValue,
 } from "../TimeSchedulingComponents/ui/select";
 import { toast } from 'sonner';
+import axios from 'axios';
+
+// Waste type mapping for display names, aligned with WasteType enum
+const WASTE_TYPE_MAPPING = {
+    'ORGANIC': 'Green Waste',
+    'RECYCLABLE': 'Recyclables',
+    'HAZARDOUS': 'Hazardous Waste',
+    'GENERAL': 'General Waste',
+    'MIXED': 'Mixed Waste',
+    'GLASS': 'Glass',
+    'ELECTRONIC': 'Electronic Waste',
+    'PAPER': 'Paper'
+};
+
+// Mock data for fallback when backend fails, aligned with ScheduleDTO
+const MOCK_SCHEDULES = [
+    {
+        id: 1,
+        date: '2025-05-05',
+        time: '07:00:00',
+        location: 'Downtown',
+        wasteType: 'ORGANIC'
+    },
+    {
+        id: 2,
+        date: '2025-05-06',
+        time: '09:00:00',
+        location: 'Suburbs',
+        wasteType: 'RECYCLABLE'
+    }
+];
 
 const Scheduling = () => {
     const [filterType, setFilterType] = useState('All');
     const [filterLocation, setFilterLocation] = useState('All');
+    const [searchTerm, setSearchTerm] = useState('');
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedWeek, setSelectedWeek] = useState(getWeekNumber(new Date()));
     const [dateError, setDateError] = useState('');
     const [reminders, setReminders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [activeTimeouts, setActiveTimeouts] = useState({});
+    const [dailyRoutes, setDailyRoutes] = useState({});
+    const [retryCount, setRetryCount] = useState(0);
 
-    // Define routes with locations and their collection details
-    const dailyRoutes = {
-        'Monday': [
-            { location: 'Downtown', type: 'General Waste', time: '7:00 AM - 9:00 AM', route: 'Route A' },
-            { location: 'Suburbs', type: 'Recyclables', time: '8:00 AM - 10:00 AM', route: 'Route B' },
-            { location: 'Industrial Area', type: 'Electronic Waste', time: '9:00 AM - 11:00 AM', route: 'Route C' }
-        ],
-        'Tuesday': [
-            { location: 'Rural', type: 'Green Waste', time: '6:00 AM - 8:00 AM', route: 'Route D' },
-            { location: 'Downtown', type: 'Recyclables', time: '10:00 AM - 12:00 PM', route: 'Route A' },
-            { location: 'Suburbs', type: 'General Waste', time: '7:00 AM - 9:00 AM', route: 'Route B' }
-        ],
-        'Wednesday': [
-            { location: 'Industrial Area', type: 'General Waste', time: '5:00 AM - 7:00 AM', route: 'Route C' },
-            { location: 'Rural', type: 'Electronic Waste', time: '8:00 AM - 10:00 AM', route: 'Route D' }
-        ],
-        'Thursday': [
-            { location: 'Downtown', type: 'Green Waste', time: '9:00 AM - 11:00 AM', route: 'Route A' },
-            { location: 'Suburbs', type: 'Electronic Waste', time: '7:00 AM - 9:00 AM', route: 'Route B' }
-        ],
-        'Friday': [
-            { location: 'Industrial Area', type: 'Recyclables', time: '6:00 AM - 8:00 AM', route: 'Route C' },
-            { location: 'Rural', type: 'General Waste', time: '8:00 AM - 10:00 AM', route: 'Route D' }
-        ],
-        'Saturday': [
-            { location: 'Downtown', type: 'Electronic Waste', time: '7:00 AM - 9:00 AM', route: 'Route A' },
-            { location: 'Suburbs', type: 'Green Waste', time: '9:00 AM - 11:00 AM', route: 'Route B' }
-        ],
-        'Sunday': [] // No collections on Sunday
-    };
+    // Process schedules into dailyRoutes, adjusted for ScheduleDTO
+    const processSchedules = useCallback((schedules) => {
+        const updatedRoutes = {};
+        schedules.forEach(schedule => {
+            const scheduleDate = new Date(schedule.date);
+            const dayOfWeek = scheduleDate.toLocaleDateString('en-US', { weekday: 'long' });
+            if (!updatedRoutes[dayOfWeek]) updatedRoutes[dayOfWeek] = [];
+            
+            // Parse LocalTime format (e.g., "07:00:00")
+            const timeParts = schedule.time.split(':');
+            const hours = parseInt(timeParts[0], 10);
+            const minutes = timeParts[1];
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            const endHours = (hours + 2) % 12 || 12;
+            const endPeriod = hours + 2 >= 12 ? 'PM' : 'AM';
+            const displayTime = `${displayHours}:${minutes} ${period} - ${endHours}:${minutes} ${endPeriod}`;
+
+            updatedRoutes[dayOfWeek].push({
+                id: schedule.id,
+                location: schedule.location,
+                type: WASTE_TYPE_MAPPING[schedule.wasteType] || schedule.wasteType,
+                time: displayTime,
+                route: `Dynamic Route ${schedule.id}`,
+                day: dayOfWeek,
+                date: schedule.date // Store the original date (e.g., "2025-05-05")
+            });
+        });
+        console.log('Updated dailyRoutes:', updatedRoutes);
+        return updatedRoutes;
+    }, []);
+
+    // Fetch schedules from backend, aligned with ScheduleDTO
+    const fetchSchedules = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            console.log('Fetching schedules from backend...');
+            const response = await axios.get('http://localhost:8045/api/v1/shedule/get-all-schedule', {
+                timeout: 5000 // Timeout after 5 seconds
+            });
+            console.log('Backend response:', response.data);
+            if (!Array.isArray(response.data)) {
+                throw new Error('Invalid response format: Expected an array of schedules');
+            }
+            const updatedRoutes = processSchedules(response.data);
+            setDailyRoutes(updatedRoutes);
+            setRetryCount(0); // Reset retry count on success
+        } catch (error) {
+            console.error('Error fetching schedules:', {
+                message: error.message,
+                code: error.code,
+                response: error.response ? {
+                    status: error.response.status,
+                    data: error.response.data
+                } : null
+            });
+            let errorMessage = 'Failed to load schedules. Please check the backend connection.';
+            if (error.code === 'ECONNABORTED') {
+                errorMessage = 'Request timed out. Please try again later.';
+            } else if (error.response?.status === 404) {
+                errorMessage = 'Schedule endpoint not found. Verify the backend API.';
+            } else if (error.response?.status === 400) {
+                errorMessage = 'Bad request. Check the API parameters.';
+            } else if (error.response?.status === 403) {
+                errorMessage = 'Access denied. Check CORS or authentication.';
+            } else if (error.response?.status === 500) {
+                errorMessage = 'Server error. Contact backend support.';
+            } else if (error.message.includes('Invalid response format')) {
+                errorMessage = 'Unexpected data format from backend. Contact support.';
+            }
+            setError(errorMessage);
+            toast.error(errorMessage, {
+                position: 'top-right',
+                duration: 3000,
+            });
+            // Fallback to mock data
+            console.log('Using mock data as fallback...');
+            const updatedRoutes = processSchedules(MOCK_SCHEDULES);
+            setDailyRoutes(updatedRoutes);
+        } finally {
+            setLoading(false);
+        }
+    }, [processSchedules]);
+
+    // Handle retry with exponential backoff
+    const handleRetry = useCallback(() => {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
+        setRetryCount(prev => prev + 1);
+        console.log(`Retrying fetchSchedules in ${delay}ms (attempt ${retryCount + 1})...`);
+        setTimeout(() => {
+            fetchSchedules();
+        }, delay);
+    }, [retryCount, fetchSchedules]);
+
+    // Fetch schedules on mount and cleanup timeouts
+    useEffect(() => {
+        fetchSchedules();
+        const timer = setTimeout(() => setLoading(false), 5000); // Fallback timeout
+        return () => {
+            clearTimeout(timer);
+            Object.values(activeTimeouts).forEach(timeout => clearTimeout(timeout));
+        };
+    }, [fetchSchedules, activeTimeouts]);
 
     // Get all unique locations and waste types for filters
     const allLocations = useMemo(() => {
@@ -66,7 +175,7 @@ const Scheduling = () => {
             day.forEach(collection => locations.add(collection.location));
         });
         return ['All', ...Array.from(locations)];
-    }, []);
+    }, [dailyRoutes]);
 
     const allWasteTypes = useMemo(() => {
         const types = new Set();
@@ -74,7 +183,7 @@ const Scheduling = () => {
             day.forEach(collection => types.add(collection.type));
         });
         return ['All', ...Array.from(types)];
-    }, []);
+    }, [dailyRoutes]);
 
     function getWeekNumber(date) {
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
@@ -103,25 +212,55 @@ const Scheduling = () => {
 
     const getCollectionIcon = (type) => {
         switch (type) {
-            case 'General Waste': return <Trash2 className="w-5 h-5 text-gray-700" />;
-            case 'Recyclables': return <RecyclingIcon className="w-5 h-5 text-green-600" />;
-            case 'Electronic Waste': return <BatteryCharging className="w-5 h-5 text-yellow-500" />;
-            case 'Green Waste': return <Leaf className="w-5 h-5 text-green-800" />;
-            default: return null;
+            case 'General Waste':
+            case 'Mixed Waste':
+                return <Trash2 className="w-5 h-5 text-gray-700" />;
+            case 'Recyclables':
+            case 'Glass':
+            case 'Paper':
+                return <RecyclingIcon className="w-5 h-5 text-green-600" />;
+            case 'Electronic Waste':
+                return <BatteryCharging className="w-5 h-5 text-yellow-500" />;
+            case 'Green Waste':
+                return <Leaf className="w-5 h-5 text-green-800" />;
+            case 'Hazardous Waste':
+                return <AlertCircle className="w-5 h-5 text-red-600" />;
+            default:
+                return null;
         }
     };
 
-    const getSchedule = useMemo(() => {
-        const date = new Date(selectedDate);
-        const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const daySchedule = dailyRoutes[dayOfWeek] || [];
+    // Get schedules based on selected date (default) or search term (global search)
+    const displayedSchedules = useMemo(() => {
+        if (searchTerm) {
+            // Global search across all days
+            const allSchedules = [];
+            Object.entries(dailyRoutes).forEach(([day, schedules]) => {
+                schedules.forEach(schedule => {
+                    allSchedules.push({ ...schedule, day });
+                });
+            });
 
-        return daySchedule.filter(collection => {
-            const typeMatch = filterType === 'All' || collection.type === filterType;
-            const locationMatch = filterLocation === 'All' || collection.location === filterLocation;
-            return typeMatch && locationMatch;
-        });
-    }, [selectedDate, filterType, filterLocation]);
+            return allSchedules.filter(collection => {
+                const searchMatch = 
+                    collection.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    collection.type.toLowerCase().includes(searchTerm.toLowerCase());
+                const typeMatch = filterType === 'All' || collection.type === filterType;
+                const locationMatch = filterLocation === 'All' || collection.location === filterLocation;
+                return searchMatch && typeMatch && locationMatch;
+            });
+        } else {
+            // Default: show schedules for the selected date only
+            const date = new Date(selectedDate);
+            const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
+            const daySchedule = dailyRoutes[dayOfWeek] || [];
+            return daySchedule.filter(collection => {
+                const typeMatch = filterType === 'All' || collection.type === filterType;
+                const locationMatch = filterLocation === 'All' || collection.location === filterLocation;
+                return typeMatch && locationMatch;
+            });
+        }
+    }, [searchTerm, filterType, filterLocation, selectedDate, dailyRoutes]);
 
     const isReminderSet = useCallback((date, collection) => {
         const reminderId = `${date}-${collection.location}-${collection.type}`;
@@ -219,14 +358,6 @@ const Scheduling = () => {
         }
     }, [reminders, activeTimeouts, notificationsEnabled]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 500);
-        return () => {
-            clearTimeout(timer);
-            Object.values(activeTimeouts).forEach(timeout => clearTimeout(timeout));
-        };
-    }, [activeTimeouts]);
-
     const getDayName = (dateString) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { weekday: 'long' });
@@ -237,7 +368,8 @@ const Scheduling = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col min-h-screen bg-gray-100 bg-cover bg-center" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}
+            className="flex flex-col min-h-screen bg-gray-100 bg-cover bg-center"
+            style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1562937950-192257528599?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}
         >
             {/* Fixed Navbar */}
             <motion.div
@@ -254,7 +386,7 @@ const Scheduling = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.7 }}
-                className="pt-21"
+                className="pt-20"
             >
                 <Uppersec
                     notificationsEnabled={notificationsEnabled}
@@ -289,6 +421,35 @@ const Scheduling = () => {
                                 >
                                     Daily Collection Routes
                                 </motion.h2>
+
+                                {/* Search Bar */}
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.5, delay: 0.1 }}
+                                    className="flex items-center space-x-2"
+                                >
+                                    <div className="relative flex-1">
+                                        <Input
+                                            type="text"
+                                            placeholder="Search all days (location or waste type)"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        />
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    </div>
+                                    {searchTerm && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setSearchTerm('')}
+                                            className="text-gray-600 hover:text-gray-800"
+                                        >
+                                            Clear
+                                        </Button>
+                                    )}
+                                </motion.div>
 
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -342,7 +503,7 @@ const Scheduling = () => {
                                             </SelectTrigger>
                                             <SelectContent className="bg-[#2b6a36a0] text-white">
                                                 {allLocations.map(location => (
-                                                    <SelectItem
+                                                   <SelectItem
                                                         key={location}
                                                         value={location}
                                                         className="text-white hover:bg-[#2b6a36c1] focus:bg-[#2A5A50]"
@@ -437,7 +598,7 @@ const Scheduling = () => {
                                 transition={{ duration: 0.5, delay: 0.6 }}
                                 className="text-sm font-medium text-gray-700"
                             >
-                                {getSchedule.length} {getSchedule.length === 1 ? 'collection' : 'collections'} scheduled
+                                {displayedSchedules.length} {displayedSchedules.length === 1 ? 'collection' : 'collections'} {searchTerm ? 'found' : 'scheduled'}
                             </motion.div>
                         </motion.div>
                     </motion.div>
@@ -449,7 +610,43 @@ const Scheduling = () => {
                         className="space-y-4"
                     >
                         <AnimatePresence>
-                            {loading ? (
+                            {error ? (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="bg-red-100/80 backdrop-blur-md rounded-xl shadow-md p-8 text-center"
+                                >
+                                    <motion.div
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                    >
+                                        <AlertCircle className="w-12 h-12 mx-auto text-red-400 mb-4" />
+                                    </motion.div>
+                                    <motion.h3
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.2 }}
+                                        className="text-lg font-medium text-red-700"
+                                    >
+                                        Error Loading Schedules
+                                    </motion.h3>
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.3 }}
+                                        className="text-red-500 mt-2"
+                                    >
+                                        {error}
+                                    </motion.p>
+                                    <Button
+                                        onClick={handleRetry}
+                                        className="mt-4 bg-red-500 text-white hover:bg-red-600"
+                                    >
+                                        Retry (Attempt {retryCount + 1})
+                                    </Button>
+                                </motion.div>
+                            ) : loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <motion.div
                                         key={i}
@@ -482,128 +679,137 @@ const Scheduling = () => {
                                         />
                                     </motion.div>
                                 ))
-                            ) : (
-                                getSchedule.length > 0 ? (
-                                    getSchedule.map((collection, index) => {
-                                        const isCurrentlySet = isReminderSet(selectedDate, collection);
-                                        return (
+                            ) : displayedSchedules.length > 0 ? (
+                                displayedSchedules.map((collection, index) => {
+                                    const isCurrentlySet = isReminderSet(selectedDate, collection);
+                                    return (
+                                        <motion.div
+                                            key={`${collection.route}-${index}`}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 20 }}
+                                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                                            className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between"
+                                        >
                                             <motion.div
-                                                key={index}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: 20 }}
-                                                transition={{ duration: 0.3, delay: index * 0.1 }}
-                                                className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-4 flex items-center justify-between"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ duration: 0.5 }}
+                                                className="flex items-center gap-4"
                                             >
+                                                {getCollectionIcon(collection.type)}
                                                 <motion.div
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    transition={{ duration: 0.5 }}
-                                                    className="flex items-center gap-4"
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ duration: 0.5, delay: 0.1 }}
                                                 >
-                                                    {getCollectionIcon(collection.type)}
                                                     <motion.div
+                                                        initial={{ opacity: 0, x: -10 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ duration: 0.5, delay: 0.2 }}
+                                                        className="flex items-center space-x-2"
+                                                    >
+                                                        <p className="text-lg font-semibold text-gray-900">{collection.type}</p>
+                                                        <motion.span
+                                                            initial={{ opacity: 0, scale: 0.9 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            transition={{ duration: 0.5, delay: 0.3 }}
+                                                            className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
+                                                        >
+                                                            {collection.route}
+                                                        </motion.span>
+                                                    </motion.div>
+                                                    <motion.p
                                                         initial={{ opacity: 0, y: 10 }}
                                                         animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ duration: 0.5, delay: 0.1 }}
+                                                        transition={{ duration: 0.5, delay: 0.4 }}
+                                                        className="text-sm text-gray-600"
                                                     >
-                                                        <motion.div
-                                                            initial={{ opacity: 0, x: -10 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            transition={{ duration: 0.5, delay: 0.2 }}
-                                                            className="flex items-center space-x-2"
-                                                        >
-                                                            <p className="text-lg font-semibold text-gray-900">{collection.type}</p>
-                                                            <motion.span
-                                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                                animate={{ opacity: 1, scale: 1 }}
-                                                                transition={{ duration: 0.5, delay: 0.3 }}
-                                                                className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full"
-                                                            >
-                                                                {collection.route}
-                                                            </motion.span>
-                                                        </motion.div>
-                                                        <motion.p
-                                                            initial={{ opacity: 0, y: 10 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ duration: 0.5, delay: 0.4 }}
-                                                            className="text-sm text-gray-600"
-                                                        >
-                                                            <span className="font-medium">{collection.time}</span>
-                                                        </motion.p>
-                                                        <motion.p
-                                                            initial={{ opacity: 0, y: 10 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ duration: 0.5, delay: 0.5 }}
-                                                            className="text-xs text-gray-500 mt-1 flex items-center"
-                                                        >
-                                                            <MapPin className="w-3 h-3 mr-1" /> {collection.location}
-                                                        </motion.p>
-                                                    </motion.div>
-                                                </motion.div>
-                                                <motion.div
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                >
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleToggleReminder(selectedDate, collection)}
-                                                        className={cn(
-                                                            isCurrentlySet
-                                                                ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
-                                                                : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                                                        <span className="font-medium">{collection.time}</span>
+                                                        {searchTerm && (
+                                                            <span>
+                                                                {' on '}
+                                                                {collection.day}
+                                                                {' ('}
+                                                                <span className="text-red-500">{collection.date}</span>
+                                                                {')'}
+                                                            </span>
                                                         )}
+                                                    </motion.p>
+                                                    <motion.p
+                                                        initial={{ opacity: 0, y: 10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ duration: 0.5, delay: 0.5 }}
+                                                        className="text-xs text-gray-500 mt-1 flex items-center"
                                                     >
-                                                        {isCurrentlySet ? (
-                                                            <>
-                                                                <Clock className="w-4 h-4 mr-2" />
-                                                                Clear Reminder
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Bell className="w-4 h-4 mr-2" />
-                                                                Remind Me
-                                                            </>
-                                                        )}
-                                                    </Button>
+                                                        <MapPin className="w-3 h-3 mr-1" /> {collection.location}
+                                                    </motion.p>
                                                 </motion.div>
                                             </motion.div>
-                                        );
-                                    })
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.5 }}
-                                        className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-8 text-center"
-                                    >
-                                        <motion.div
-                                            animate={{ y: [0, -10, 0] }}
-                                            transition={{ repeat: Infinity, duration: 2 }}
-                                        >
-                                            <Truck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                                            <motion.div
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                            >
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleToggleReminder(selectedDate, collection)}
+                                                    className={cn(
+                                                        isCurrentlySet
+                                                            ? "bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200"
+                                                            : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                                                    )}
+                                                >
+                                                    {isCurrentlySet ? (
+                                                        <>
+                                                            <Clock className="w-4 h-4 mr-2" />
+                                                            Clear Reminder
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Bell className="w-4 h-4 mr-2" />
+                                                            Remind Me
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </motion.div>
                                         </motion.div>
-                                        <motion.h3
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5, delay: 0.2 }}
-                                            className="text-lg font-medium text-gray-700"
-                                        >
-                                            No collections scheduled
-                                        </motion.h3>
-                                        <motion.p
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5, delay: 0.3 }}
-                                            className="text-gray-500 mt-2"
-                                        >
-                                            {filterType !== 'All' || filterLocation !== 'All'
-                                                ? "No collections match your filters. Try adjusting your filters."
-                                                : "No waste collections are scheduled for this day."}
-                                        </motion.p>
+                                    );
+                                })
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="bg-white/80 backdrop-blur-md rounded-xl shadow-md p-8 text-center"
+                                >
+                                    <motion.div
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                    >
+                                        <Truck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                                     </motion.div>
-                                )
+                                    <motion.h3
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.2 }}
+                                        className="text-lg font-medium text-gray-700"
+                                    >
+                                        {searchTerm ? 'No collections found' : 'No collections scheduled'}
+                                    </motion.h3>
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.3 }}
+                                        className="text-gray-500 mt-2"
+                                    >
+                                        {searchTerm
+                                            ? "No collections match your search or filters. Try adjusting your search term or filters."
+                                            : filterType !== 'All' || filterLocation !== 'All'
+                                            ? "No collections match your filters. Try adjusting your filters."
+                                            : "No waste collections are scheduled for this day."}
+                                    </motion.p>
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </motion.div>

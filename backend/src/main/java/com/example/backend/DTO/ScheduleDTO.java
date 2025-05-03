@@ -21,4 +21,5 @@ public class ScheduleDTO {
     private LocalTime time;
     private String location;
     private WasteType wasteType;
+
 }
