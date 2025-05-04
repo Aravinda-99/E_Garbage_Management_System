@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, Camera, Send, X, ChevronUp, Sparkles, Info, Clock } from 'lucide-react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
 
 const AIBot = () => {
   // State management
@@ -13,14 +13,9 @@ const AIBot = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
   const chatContainerRef = useRef(null);
-  
-  // API Keys
   const imaggaApiKey = 'acc_744bec21e1455ed';
   const imaggaApiSecret = 'aa1db6c7a0995bf46955732d6aca8543';
-  
-  // Initialize Google Gemini AI
-  const genAI = new GoogleGenerativeAI("AIzaSyCl3oZMgnx6hahBY584ZcDzcMvj6r9beuI");
-  const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+
 
   // Scroll to bottom of chat when new messages are added
   useEffect(() => {
@@ -29,12 +24,33 @@ const AIBot = () => {
     }
   }, [messages]);
 
-  // Get AI response from Google Gemini and Imagga
+  // Helper function to upload image to Imgur and get a public URL
+  const uploadToImgur = async (base64Image) => {
+    const IMGUR_CLIENT_ID = 'YOUR_IMGUR_CLIENT_ID'; // <-- Replace with your Imgur Client ID
+    const response = await fetch('https://api.imgur.com/3/image', {
+      method: 'POST',
+      headers: {
+        Authorization: `Client-ID ${IMGUR_CLIENT_ID}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: base64Image.split(',')[1], // Remove the data:image/...;base64, part
+        type: 'base64',
+      }),
+    });
+    const data = await response.json();
+    if (data.success && data.data.link) {
+      return data.data.link;
+    } else {
+      throw new Error('Failed to upload image to Imgur');
+    }
+  };
+
+  // Get AI response from OpenRouter or Imagga
   const getAIResponse = async (question, imageData = null) => {
     setIsProcessing(true);
     try {
       let response = '';
-      
       if (imageData) {
         // Use Imagga API for image analysis
         const formData = new FormData();
@@ -50,7 +66,7 @@ const AIBot = () => {
         });
 
         if (!imaggaResponse.ok) {
-          throw new Error('Failed to analyze image with Imagga');
+          throw new Error('Failed to analyze image');
         }
 
         const imaggaData = await imaggaResponse.json();
@@ -66,39 +82,14 @@ const AIBot = () => {
         response = '**Image Analysis Results:**\n';
         response += `Detected items: ${relevantTags}\n\n`;
         
-        // Use Gemini AI for detailed analysis
-        const imageParts = [
-          {
-            inlineData: {
-              data: imageData.split(',')[1],
-              mimeType: blob.type
-            }
-          },
-          {
-            text: `Based on these detected items: ${relevantTags}, provide detailed recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method\n4. Environmental impact\n5. Alternative uses or upcycling suggestions`
-          }
-        ];
 
-        const result = await model.generateContent(imageParts);
-        const geminiResponse = await result.response;
-        response += geminiResponse.text();
-      } else {
-        // For text questions, use Gemini AI
-        const textModel = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await textModel.generateContent([
-          "You are a recycling expert. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative.",
-          question
-        ]);
-        const geminiResponse = await result.response;
-        response = geminiResponse.text();
       }
-      
       setMessages(prev => [...prev, { sender: 'bot', content: response }]);
     } catch (error) {
       console.error('Error getting AI response:', error);
       setMessages(prev => [...prev, {
         sender: 'bot',
-        content: 'I apologize, but I encountered an error processing your request. Please try again later.'
+        content: 'I apologize, but I encountered an error analyzing the image. Please try again later.'
       }]);
     } finally {
       setIsProcessing(false);
