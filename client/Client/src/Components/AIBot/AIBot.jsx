@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, Camera, Send, X, ChevronUp, Sparkles, Info, Clock } from 'lucide-react';
 
+
 const AIBot = () => {
   // State management
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,7 @@ const AIBot = () => {
   const chatContainerRef = useRef(null);
   const imaggaApiKey = 'acc_744bec21e1455ed';
   const imaggaApiSecret = 'aa1db6c7a0995bf46955732d6aca8543';
-  const openRouterApiKey = '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';
+
 
   // Scroll to bottom of chat when new messages are added
   useEffect(() => {
@@ -81,60 +82,7 @@ const AIBot = () => {
         response = '**Image Analysis Results:**\n';
         response += `Detected items: ${relevantTags}\n\n`;
         
-        // Get recycling information using OpenRouter
-        const recyclingPrompt = `Based on these detected items: ${relevantTags}, provide brief recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method`;
-        
-        const textResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'HTTP-Referer': 'https://wastewise.com',
-            'X-Title': 'WasteWise AI Assistant',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a recycling expert. Provide concise, practical guidance about recycling and waste disposal."
-              },
-              {
-                role: 'user',
-                content: recyclingPrompt
-              }
-            ]
-          })
-        });
 
-        const textData = await textResponse.json();
-        response += textData.choices?.[0]?.message?.content || "I apologize, but I couldn't generate recycling guidance. Please try again.";
-      } else {
-        // For text questions, use OpenRouter
-        const textResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'HTTP-Referer': 'https://wastewise.com',
-            'X-Title': 'WasteWise AI Assistant',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-r1:free',
-            messages: [
-              {
-                role: 'system',
-                content: "You are a helpful recycling assistant. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative."
-              },
-              {
-                role: 'user',
-                content: question
-              }
-            ]
-          })
-        });
-        const textData = await textResponse.json();
-        response = textData.choices?.[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
       }
       setMessages(prev => [...prev, { sender: 'bot', content: response }]);
     } catch (error) {
