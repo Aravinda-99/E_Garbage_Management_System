@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, Camera, Send, X, ChevronUp, Sparkles, Info, Clock } from 'lucide-react';
-import { GoogleGenAI, createUserContent, createPartFromUri } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const AIBot = () => {
   // State management
@@ -19,9 +19,8 @@ const AIBot = () => {
   const imaggaApiSecret = 'aa1db6c7a0995bf46955732d6aca8543';
   
   // Initialize Google Gemini AI
-  const ai = new GoogleGenAI({ 
-    apiKey: "AIzaSyCl3oZMgnx6hahBY584ZcDzcMvj6r9beuI" 
-  });
+  const genAI = new GoogleGenerativeAI("AIzaSyCl3oZMgnx6hahBY584ZcDzcMvj6r9beuI");
+  const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
 
   // Scroll to bottom of chat when new messages are added
   useEffect(() => {
@@ -68,31 +67,30 @@ const AIBot = () => {
         response += `Detected items: ${relevantTags}\n\n`;
         
         // Use Gemini AI for detailed analysis
-        const myfile = await ai.files.upload({
-          file: blob,
-          config: { mimeType: blob.type }
-        });
+        const imageParts = [
+          {
+            inlineData: {
+              data: imageData.split(',')[1],
+              mimeType: blob.type
+            }
+          },
+          {
+            text: `Based on these detected items: ${relevantTags}, provide detailed recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method\n4. Environmental impact\n5. Alternative uses or upcycling suggestions`
+          }
+        ];
 
-        const geminiResponse = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
-          contents: createUserContent([
-            createPartFromUri(myfile.uri, myfile.mimeType),
-            `Based on these detected items: ${relevantTags}, provide detailed recycling guidance including:\n1. Material type\n2. Recyclability\n3. Best disposal method\n4. Environmental impact\n5. Alternative uses or upcycling suggestions`
-          ])
-        });
-        
-        response += geminiResponse.text;
+        const result = await model.generateContent(imageParts);
+        const geminiResponse = await result.response;
+        response += geminiResponse.text();
       } else {
         // For text questions, use Gemini AI
-        const geminiResponse = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
-          contents: createUserContent([
-            "You are a recycling expert. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative.",
-            question
-          ])
-        });
-        
-        response = geminiResponse.text;
+        const textModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const result = await textModel.generateContent([
+          "You are a recycling expert. Provide accurate information about recycling, waste management, and environmental sustainability. Keep responses concise and informative.",
+          question
+        ]);
+        const geminiResponse = await result.response;
+        response = geminiResponse.text();
       }
       
       setMessages(prev => [...prev, { sender: 'bot', content: response }]);
